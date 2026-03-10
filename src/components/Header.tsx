@@ -27,7 +27,6 @@ const LEVEL_COLORS: Record<string, string> = {
 export const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, score, scoreLevel }) => {
   const scoreColor = LEVEL_COLORS[scoreLevel] || '#9BAAC4';
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -123,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, score, s
           text-transform: uppercase;
         }
 
-        /* ── NAV ── */
+        /* ── DESKTOP NAV ── */
         .fw-nav {
           display: flex;
           align-items: center;
@@ -269,81 +268,67 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, score, s
           border-radius: 20px;
         }
 
-        /* ── MOBILE HAMBURGER ── */
-        .fw-hamburger {
+        /* ── BOTTOM NAVBAR (MOBILE) ── */
+        .fw-bottom-nav {
           display: none;
-          flex-direction: column;
-          gap: 4.5px;
-          padding: 8px;
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: transparent;
-          cursor: pointer;
-          margin-left: auto;
-          flex-shrink: 0;
-        }
-        .fw-hamburger span {
-          display: block;
-          width: 18px;
-          height: 1.5px;
-          background: #9BAAC4;
-          border-radius: 2px;
-          transition: all 0.2s ease;
-          transform-origin: center;
-        }
-        .fw-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-        .fw-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-        .fw-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-
-        /* ── MOBILE SHEET ── */
-        .fw-mobile-sheet {
           position: fixed;
-          inset: 66px 0 0;
-          background: rgba(8,17,32,0.97);
-          backdrop-filter: blur(24px);
-          z-index: 199;
-          padding: 20px 24px 32px;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 70px;
+          background: rgba(8, 17, 32, 0.95);
+          backdrop-filter: blur(24px) saturate(180%);
+          -webkit-backdrop-filter: blur(24px) saturate(180%);
+          border-top: 1px solid rgba(201, 168, 76, 0.15);
+          z-index: 200;
+          padding: 0 8px;
+          box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .fw-bottom-nav-container {
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          height: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+        }
+        .fw-bottom-nav-btn {
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          transform: translateY(-110%);
-          opacity: 0;
-          transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
-          border-top: 1px solid rgba(201,168,76,0.1);
-        }
-        .fw-mobile-sheet.open {
-          transform: translateY(0);
-          opacity: 1;
-        }
-        .fw-mobile-btn {
-          display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 14px 18px;
-          border-radius: 12px;
-          border: 1px solid transparent;
+          justify-content: center;
+          gap: 4px;
           background: transparent;
+          border: none;
           color: #4A5E7A;
           font-family: 'Karla', sans-serif;
-          font-size: 15px;
+          font-size: 11px;
           font-weight: 500;
+          padding: 8px 12px;
+          border-radius: 12px;
+          transition: all 0.2s ease;
           cursor: pointer;
-          text-align: left;
-          transition: all 0.15s ease;
+          flex: 0 1 auto;
+          min-width: 60px;
         }
-        .fw-mobile-btn.active {
+        .fw-bottom-nav-btn.active {
           color: #E2C47A;
-          background: rgba(201,168,76,0.08);
-          border-color: rgba(201,168,76,0.18);
+          background: rgba(201, 168, 76, 0.12);
         }
-        .fw-mobile-btn:hover:not(.active) {
-          color: #9BAAC4;
-          background: rgba(255,255,255,0.03);
+        .fw-bottom-nav-icon {
+          font-size: 20px;
+          line-height: 1;
+          margin-bottom: 2px;
         }
-        .fw-mobile-icon {
-          font-size: 18px;
-          width: 22px;
-          text-align: center;
+        .fw-bottom-nav-label {
+          font-size: 10px;
+          letter-spacing: 0.3px;
+          text-transform: uppercase;
+        }
+
+        /* Add padding to main content to account for bottom nav on mobile */
+        .fw-main-content {
+          padding-bottom: 0;
         }
 
         /* ── RESPONSIVE ── */
@@ -351,13 +336,28 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, score, s
           .fw-nav { display: none; }
           .fw-divider { display: none; }
           .fw-score-chip { padding: 6px 12px 6px 8px; }
-          .fw-hamburger { display: flex; }
-          .fw-logo { margin-right: 0; flex: 1; }
+          .fw-logo { margin-right: 0; }
           .fw-logo-tagline { display: none; }
+          
+          /* Show bottom nav on mobile */
+          .fw-bottom-nav { display: block; }
+          
+          /* Adjust header for mobile */
+          .fw-header-inner { 
+            padding: 0 16px; 
+            justify-content: space-between;
+          }
+          
+          /* Add padding to body for bottom nav */
+          body { padding-bottom: 70px; }
         }
         @media (max-width: 480px) {
-          .fw-header-inner { padding: 0 16px; }
+          .fw-header-inner { padding: 0 12px; }
           .fw-score-number { font-size: 17px; }
+          .fw-score-level { font-size: 9px; padding: 2px 6px; }
+          .fw-bottom-nav-btn { min-width: 50px; padding: 6px 8px; }
+          .fw-bottom-nav-icon { font-size: 18px; }
+          .fw-bottom-nav-label { font-size: 9px; }
         }
       `}</style>
 
@@ -425,31 +425,24 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, score, s
               {scoreLevel}
             </span>
             </div>
-
-            {/* Mobile hamburger */}
-            <button
-                className={`fw-hamburger${mobileMenuOpen ? ' open' : ''}`}
-                onClick={() => setMobileMenuOpen((v) => !v)}
-                aria-label="Menu"
-            >
-              <span /><span /><span />
-            </button>
           </div>
         </header>
 
-        {/* Mobile slide-down menu */}
-        <div className={`fw-mobile-sheet${mobileMenuOpen ? ' open' : ''}`}>
-          {NAV_ITEMS.map((item) => (
-              <button
-                  key={item.id}
-                  className={`fw-mobile-btn${activeView === item.id ? ' active' : ''}`}
-                  onClick={() => { onNavigate(item.id); setMobileMenuOpen(false); }}
-              >
-                <span className="fw-mobile-icon">{item.icon}</span>
-                {item.label}
-              </button>
-          ))}
-        </div>
+        {/* Mobile Bottom Navigation */}
+        <nav className="fw-bottom-nav">
+          <div className="fw-bottom-nav-container">
+            {NAV_ITEMS.map((item) => (
+                <button
+                    key={item.id}
+                    className={`fw-bottom-nav-btn${activeView === item.id ? ' active' : ''}`}
+                    onClick={() => onNavigate(item.id)}
+                >
+                  <span className="fw-bottom-nav-icon">{item.icon}</span>
+                  <span className="fw-bottom-nav-label">{item.label}</span>
+                </button>
+            ))}
+          </div>
+        </nav>
       </>
   );
 };
