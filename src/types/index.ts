@@ -58,4 +58,49 @@ export interface MonthlyBreakdown {
   savingsLeft: number;
 }
 
-export type AppView = 'dashboard' | 'expenses' | 'insights' | 'advisor';
+export type AppView = 'dashboard' | 'expenses' | 'insights' | 'advisor' | 'investments';
+
+// ─── Investment types ──────────────────────────────────────
+
+export type InvestmentCategory =
+  | 'sacco'
+  | 'mmf'
+  | 'stocks'
+  | 'bonds'
+  | 'realEstate'
+  | 'crypto'
+  | 'pension'
+  | 'savingsAccount'
+  | 'fixedDeposit'
+  | 'other';
+
+export type InvestmentStatus = 'active' | 'matured' | 'withdrawn';
+
+export interface Investment {
+  id: string;
+  name: string;
+  amount: number;
+  category: InvestmentCategory;
+  date: string;
+  expectedReturnPct: number;   // annual % return e.g. 12
+  notes: string;
+  status: InvestmentStatus;
+  isRecurring: boolean;
+}
+
+export interface InvestmentCategoryMeta {
+  label: string;
+  color: string;
+  icon: string;
+  avgReturn: number;           // typical annual % return for the category
+  riskLevel: 'low' | 'medium' | 'high';
+  description: string;
+}
+
+export interface InvestmentSummary {
+  totalInvested: number;
+  totalMonthly: number;
+  projectedAnnualReturn: number;
+  byCategory: Record<InvestmentCategory, number>;
+  activeCount: number;
+}

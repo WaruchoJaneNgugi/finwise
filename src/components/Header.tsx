@@ -9,10 +9,11 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS: { id: AppView; label: string; icon: string }[] = [
-  { id: 'advisor',   label: 'Advisor',   icon: '◆' },
-  { id: 'dashboard', label: 'Overview',  icon: '▦' },
-  { id: 'expenses',  label: 'Expenses',  icon: '◎' },
-  { id: 'insights',  label: 'Insights',  icon: '◉' },
+  { id: 'advisor',     label: 'Advisor',     icon: '◆' },
+  { id: 'dashboard',   label: 'Overview',    icon: '▦' },
+  { id: 'expenses',    label: 'Expenses',    icon: '◎' },
+  { id: 'investments', label: 'Investments', icon: '◈' },
+  { id: 'insights',    label: 'Insights',    icon: '◉' },
 ];
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -58,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, onNavigate, score, s
         .fw-header-inner {
           position: relative;
           z-index: 1;
-          // max-width: 1300px;
+          max-width: 1300px;
           margin: 0 auto;
           padding: 0 28px;
           height: 66px;

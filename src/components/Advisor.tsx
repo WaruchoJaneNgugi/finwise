@@ -95,7 +95,7 @@ export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome }) => 
               <div>
                 <div style={S.emergencyTitle}>Emergency Fund Goal</div>
                 <p style={S.emergencyDesc}>
-                  You should build an emergency fund covering <strong style={{ color: '#F87171' }}>3–12 months</strong> of living expenses.
+                  You should build an emergency fund covering <strong style={{ color: '#F87171' }}>3–6 months</strong> of living expenses.
                   At your income, that means saving:
                 </p>
               </div>
@@ -209,5 +209,5 @@ const S: Record<string, React.CSSProperties> = {
   promptCard: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 24px', background: '#132040', border: '1px dashed rgba(201,168,76,0.2)', borderRadius: 14, textAlign: 'center' },
   promptIcon: { fontSize: 48, marginBottom: 16 },
   promptTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 600, color: '#C9A84C', marginBottom: 12 },
-  promptText: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.7 },
+  promptText: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.7, maxWidth: 420 },
 };

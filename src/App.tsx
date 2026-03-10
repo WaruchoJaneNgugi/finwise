@@ -7,103 +7,106 @@ import { Dashboard } from './components/Dashboard';
 import { ExpenseForm, ExpenseList } from './components/ExpenseManager';
 import { Insights } from './components/Insights';
 import { Advisor } from './components/Advisor';
+import {
+  InvestmentForm,
+  InvestmentList,
+  InvestmentSummaryBar,
+  PortfolioAllocation
+} from "./components/InvestmentManager.tsx";
+import {useInvestments} from "./hooks/useInvestments.ts";
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<AppView>('advisor');
+
   const {
-    monthlyExpenses,
-    profile,
-    breakdown,
-    insight,
-    warnings,
-    addExpense,
-    removeExpense,
-    updateProfile,
+    monthlyExpenses, profile, breakdown, insight,
+    warnings, addExpense, removeExpense, updateProfile,
   } = useExpenses();
 
-  const handleUpdateIncome = (income: number) => {
-    updateProfile(income, profile.currency);
-  };
+  const {
+    investments, summary, addInvestment,
+    removeInvestment, updateStatus,
+  } = useInvestments();
+
+  const handleUpdateIncome = (income: number) => updateProfile(income, profile.currency);
 
   return (
-    <div style={appStyles.root}>
-      <Header
-        activeView={activeView}
-        onNavigate={setActiveView}
-        score={insight.score}
-        scoreLevel={insight.level}
-      />
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Header
+            activeView={activeView}
+            onNavigate={setActiveView}
+            score={insight.score}
+            scoreLevel={insight.level}
+        />
 
-      <main style={appStyles.main}>
-        <div style={appStyles.content}>
-          {activeView === 'dashboard' && (
-            <Dashboard
-              breakdown={breakdown}
-              insight={insight}
-              profile={profile}
-              warnings={warnings}
-              onUpdateIncome={handleUpdateIncome}
-            />
-          )}
+        <main className="main-content">
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
 
-          {activeView === 'expenses' && (
-            <div className="animate-in">
-              <ExpenseForm onAdd={addExpense} />
-              <ExpenseList
-                expenses={monthlyExpenses}
-                onRemove={removeExpense}
-                currency={profile.currency}
-              />
-            </div>
-          )}
+            {activeView === 'advisor' && (
+                <Advisor profile={profile} onUpdateIncome={handleUpdateIncome} />
+            )}
 
-          {activeView === 'insights' && (
-            <Insights breakdown={breakdown} profile={profile} />
-          )}
+            {activeView === 'dashboard' && (
+                <Dashboard
+                    breakdown={breakdown} insight={insight}
+                    profile={profile} warnings={warnings}
+                    onUpdateIncome={handleUpdateIncome}
+                />
+            )}
 
-          {activeView === 'advisor' && (
-            <Advisor profile={profile} onUpdateIncome={handleUpdateIncome} />
-          )}
-        </div>
-      </main>
+            {activeView === 'expenses' && (
+                <div className="animate-in">
+                  <ExpenseForm onAdd={addExpense} />
+                  <ExpenseList
+                      expenses={monthlyExpenses}
+                      onRemove={removeExpense}
+                      currency={profile.currency}
+                  />
+                </div>
+            )}
 
-      <footer style={appStyles.footer}>
-        <span>FinWise © {new Date().getFullYear()}</span>
-        <span style={appStyles.footerDot}>·</span>
-        <span>Smart money management for every Kenyan</span>
-        <span style={appStyles.footerDot}>·</span>
-        <span style={{ color: '#C9A84C' }}>Your data stays on this device</span>
-      </footer>
-    </div>
+            {activeView === 'investments' && (
+                <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  {/* Summary stats */}
+                  <InvestmentSummaryBar
+                      summary={summary}
+                      monthlyIncome={profile.monthlyIncome}
+                  />
+
+                  {/* Portfolio allocation chart (only when there are investments) */}
+                  {summary.activeCount > 0 && (
+                      <PortfolioAllocation summary={summary} />
+                  )}
+
+                  {/* Add form */}
+                  <InvestmentForm onAdd={addInvestment} />
+
+                  {/* List */}
+                  <InvestmentList
+                      investments={investments}
+                      onRemove={removeInvestment}
+                      onUpdateStatus={updateStatus}
+                      currency={profile.currency}
+                  />
+                </div>
+            )}
+
+            {activeView === 'insights' && (
+                <Insights breakdown={breakdown} profile={profile} />
+            )}
+
+          </div>
+        </main>
+
+        <footer className="app-footer">
+          <span>FinWise © {new Date().getFullYear()}</span>
+          <span className="footer-dot">·</span>
+          <span>Smart money management for every Kenyan</span>
+          <span className="footer-dot">·</span>
+          <span style={{ color: '#C9A84C' }}>Your data stays on this device</span>
+        </footer>
+      </div>
   );
-};
-
-const appStyles: Record<string, React.CSSProperties> = {
-  root: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  main: {
-    flex: 1,
-    padding: '32px 24px',
-  },
-  content: {
-    // maxWidth: 1280,
-    width:'100%',
-    margin: '0 auto',
-  },
-  footer: {
-    padding: '16px 24px',
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#2A3B58',
-    borderTop: '1px solid rgba(255,255,255,0.04)',
-    display: 'flex',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  footerDot: { color: '#1A2E50' },
 };
 
 export default App;
