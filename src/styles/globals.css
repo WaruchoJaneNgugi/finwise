@@ -205,3 +205,31 @@ input, select, textarea { font-family: var(--font-body); outline: none; }
   .app-footer { gap: 4px; font-size: 11px; }
   .footer-dot { display: none; }
 }
+
+/* ── ADDITIONAL GLOBAL STYLES (append to globals.css) ─────── */
+
+/* Goals form grid: 3 → 2 → 1 */
+.goals-form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 0; }
+@media (max-width: 900px) { .goals-form-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .goals-form-grid { grid-template-columns: 1fr; gap: 12px; } }
+
+/* Goals summary bar: 4 → 2 → 1 */
+@media (max-width: 900px) { .goals-summary-bar { grid-template-columns: repeat(2, 1fr) !important; } }
+@media (max-width: 480px) { .goals-summary-bar { grid-template-columns: 1fr !important; } }
+
+/* Auth overlay full viewport */
+body.auth-open { overflow: hidden; }
+
+/* AI chat textarea no default browser outline */
+.fw-chat-textarea:focus { outline: none; border-color: rgba(201,168,76,0.4) !important; }
+
+/* Scrollable mobile bottom nav */
+@media (max-width: 900px) {
+  .main-content { padding-bottom: 80px; }
+}
+
+/* Quick prompt hover effect */
+.fw-quick-btn:hover {
+  background: rgba(201, 168, 76, 0.15) !important;
+  border-color: rgba(201, 168, 76, 0.3) !important;
+}

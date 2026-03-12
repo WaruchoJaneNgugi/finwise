@@ -1,16 +1,7 @@
 export type ExpenseCategory =
-  | 'housing'
-  | 'food'
-  | 'transport'
-  | 'utilities'
-  | 'medical'
-  | 'education'
-  | 'entertainment'
-  | 'diningOut'
-  | 'shopping'
-  | 'subscriptions'
-  | 'impulse'
-  | 'other';
+    | 'housing' | 'food' | 'transport' | 'utilities' | 'medical'
+    | 'education' | 'entertainment' | 'diningOut' | 'shopping'
+    | 'subscriptions' | 'impulse' | 'other';
 
 export type ExpenseType = 'necessary' | 'unnecessary';
 
@@ -58,21 +49,15 @@ export interface MonthlyBreakdown {
   savingsLeft: number;
 }
 
-export type AppView = 'dashboard' | 'expenses' | 'insights' | 'advisor' | 'investments';
+export type AppView =
+    | 'dashboard' | 'expenses' | 'insights' | 'advisor'
+    | 'investments' | 'goals' | 'bills' | 'networth' | 'chat';
 
 // ─── Investment types ──────────────────────────────────────
 
 export type InvestmentCategory =
-  | 'sacco'
-  | 'mmf'
-  | 'stocks'
-  | 'bonds'
-  | 'realEstate'
-  | 'crypto'
-  | 'pension'
-  | 'savingsAccount'
-  | 'fixedDeposit'
-  | 'other';
+    | 'sacco' | 'mmf' | 'stocks' | 'bonds' | 'realEstate'
+    | 'crypto' | 'pension' | 'savingsAccount' | 'fixedDeposit' | 'other';
 
 export type InvestmentStatus = 'active' | 'matured' | 'withdrawn';
 
@@ -82,7 +67,7 @@ export interface Investment {
   amount: number;
   category: InvestmentCategory;
   date: string;
-  expectedReturnPct: number;   // annual % return e.g. 12
+  expectedReturnPct: number;
   notes: string;
   status: InvestmentStatus;
   isRecurring: boolean;
@@ -92,7 +77,7 @@ export interface InvestmentCategoryMeta {
   label: string;
   color: string;
   icon: string;
-  avgReturn: number;           // typical annual % return for the category
+  avgReturn: number;
   riskLevel: 'low' | 'medium' | 'high';
   description: string;
 }
@@ -103,4 +88,107 @@ export interface InvestmentSummary {
   projectedAnnualReturn: number;
   byCategory: Record<InvestmentCategory, number>;
   activeCount: number;
+}
+
+// ─── Goals ────────────────────────────────────────────────
+
+export type GoalCategory =
+    | 'emergency' | 'vacation' | 'education' | 'property'
+    | 'car' | 'business' | 'retirement' | 'wedding' | 'other';
+
+export interface Goal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  savedAmount: number;
+  category: GoalCategory;
+  deadline: string; // YYYY-MM
+  monthlyContribution: number;
+  notes: string;
+  createdAt: string;
+  completed: boolean;
+}
+
+export interface GoalCategoryMeta {
+  label: string;
+  icon: string;
+  color: string;
+  description: string;
+}
+
+// ─── Bills ────────────────────────────────────────────────
+
+export type BillCategory =
+    | 'rent' | 'electricity' | 'water' | 'internet' | 'phone'
+    | 'insurance' | 'subscription' | 'loan' | 'tv' | 'other';
+
+export type BillFrequency = 'weekly' | 'monthly' | 'quarterly' | 'annually';
+export type BillStatus = 'upcoming' | 'paid' | 'overdue';
+
+export interface Bill {
+  id: string;
+  name: string;
+  amount: number;
+  category: BillCategory;
+  dueDay: number;
+  frequency: BillFrequency;
+  status: BillStatus;
+  lastPaidDate?: string;
+  notes: string;
+  isRecurring: boolean;
+}
+
+export interface BillCategoryMeta {
+  label: string;
+  icon: string;
+  color: string;
+}
+
+// ─── Net Worth ────────────────────────────────────────────
+
+export type AssetCategory =
+    | 'cash' | 'investments' | 'property' | 'vehicle'
+    | 'crypto' | 'pension' | 'business' | 'other';
+
+export type LiabilityCategory =
+    | 'mortgage' | 'carLoan' | 'personalLoan'
+    | 'creditCard' | 'studentLoan' | 'other';
+
+export interface NetWorthItem {
+  id: string;
+  name: string;
+  amount: number;
+  category: AssetCategory | LiabilityCategory;
+  type: 'asset' | 'liability';
+  notes: string;
+}
+
+export interface AssetCategoryMeta {
+  label: string;
+  icon: string;
+  color: string;
+}
+
+export interface LiabilityCategoryMeta {
+  label: string;
+  icon: string;
+  color: string;
+}
+
+// ─── Auth ─────────────────────────────────────────────────
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  pin: string;
+  createdAt: string;
+}
+
+// ─── Chat ─────────────────────────────────────────────────
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
 }
