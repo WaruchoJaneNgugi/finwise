@@ -51,7 +51,8 @@ export interface MonthlyBreakdown {
 
 export type AppView =
     | 'dashboard' | 'expenses' | 'insights' | 'advisor'
-    | 'investments' | 'goals' | 'bills' | 'networth' | 'chat';
+    | 'investments' | 'goals' | 'bills' | 'networth' | 'chat'
+    | 'emergency' | 'alerts';
 
 // ─── Investment types ──────────────────────────────────────
 
@@ -191,4 +192,40 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+}
+
+// ─── Habits ───────────────────────────────────────────────
+
+export interface Habit {
+  id: string;
+  text: string;
+  done: boolean;
+  createdAt: string;
+  /** ISO date string of last completion reset */
+  lastResetDate?: string;
+}
+
+// ─── Emergency Fund ───────────────────────────────────────
+
+export interface EmergencyFundData {
+  currentAmount: number;
+  targetMonths: number;
+  lastUpdated: string;
+  contributions: { id: string; amount: number; date: string; note: string }[];
+}
+
+// ─── Alerts & SOS ─────────────────────────────────────────
+
+export interface AlertContact {
+  name: string;
+  email: string;
+  whatsapp: string;
+  phone: string;
+}
+
+export interface AlertLog {
+  id: string;
+  channel: 'email' | 'whatsapp' | 'phone';
+  timestamp: string;
+  snapshot: string; // serialized financial summary at time of alert
 }

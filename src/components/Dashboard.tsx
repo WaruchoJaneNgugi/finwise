@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import type { MonthlyBreakdown, SpendingInsight, FinancialProfile } from '../types';
+import React, {type Dispatch, type SetStateAction, useState} from 'react';
+import type {MonthlyBreakdown, SpendingInsight, FinancialProfile, Bill, Goal, Habit, AppView} from '../types';
 import { formatCurrency, CATEGORY_META } from '../utils/expenses';
+import { HabitsTracker } from './HabitsTracker';
 
 interface DashboardProps {
   breakdown: MonthlyBreakdown;
@@ -8,6 +9,21 @@ interface DashboardProps {
   profile: FinancialProfile;
   warnings: string[];
   onUpdateIncome: (income: number) => void;
+  // Extended props
+  bills?: Bill[];
+  billsMonthlyTotal?: number;
+  goals?: Goal[];
+  netWorthSummary?: { totalAssets: number; totalLiabilities: number; netWorth: number };
+  habits?: Habit[];
+  habitsCompletedCount?: number;
+  habitsCompletionPct?: number;
+  efCurrent?: number;
+  efTarget?: number;
+  efProgressPct?: number;
+  onToggleHabit?: (id: string) => void;
+  onAddHabit?: (text: string) => void;
+  onRemoveHabit?: (id: string) => void;
+  onNavigate?: Dispatch<SetStateAction<AppView>>;
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -20,6 +36,11 @@ const LEVEL_BG: Record<string, string> = {
 
 export const Dashboard: React.FC<DashboardProps> = ({
   breakdown, insight, profile, warnings, onUpdateIncome,
+  bills = [], goals = [],
+  netWorthSummary = { totalAssets: 0, totalLiabilities: 0, netWorth: 0 },
+  habits = [], habitsCompletedCount = 0, habitsCompletionPct = 0,
+  efCurrent = 0, efTarget = 0, efProgressPct = 0,
+  onToggleHabit, onAddHabit, onRemoveHabit, onNavigate,
 }) => {
   const [editingIncome, setEditingIncome] = useState(false);
   const [incomeInput, setIncomeInput] = useState(String(profile.monthlyIncome));
@@ -40,6 +61,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const topCategories = Object.entries(breakdown.byCategory)
     .filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a).slice(0, 5);
 
+  const billsDue = bills.filter((b) => b.status !== 'paid');
+  const billsOverdue = bills.filter((b) => b.status === 'overdue');
+  const activeGoals = goals.filter((g) => !g.completed).slice(0, 3);
+  const efColor = efProgressPct >= 80 ? '#3DD68C' : efProgressPct >= 40 ? '#FBBF24' : '#F87171';
+
   return (
     <div style={S.container} className="animate-in">
 
@@ -59,13 +85,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div style={S.statLabel}>Monthly Income</div>
           {editingIncome ? (
             <div style={S.incomeEdit}>
-              <input
-                style={S.incomeInput}
-                value={incomeInput}
+              <input style={S.incomeInput} value={incomeInput}
                 onChange={(e) => setIncomeInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && saveIncome()}
-                autoFocus placeholder="e.g. 45000"
-              />
+                autoFocus placeholder="e.g. 45000" />
               <button style={S.saveBtn} onClick={saveIncome}>Save</button>
             </div>
           ) : (
@@ -167,6 +190,89 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
+      {/* 3-card preview row: Net Worth, Bills Due, Emergency Fund */}
+      <div className="stats-grid">
+        {/* Net Worth */}
+        <div style={{ ...S.statCard, cursor: onNavigate ? 'pointer' : 'default' }}
+          onClick={() => onNavigate?.('networth')}>
+          <div style={S.statLabel}>Net Worth</div>
+          <div style={{ ...S.statValue, color: netWorthSummary.netWorth >= 0 ? '#3DD68C' : '#F87171', fontSize: 22 }}>
+            {formatCurrency(netWorthSummary.netWorth, profile.currency)}
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: 11, color: '#5A6B8A' }}>
+            <span style={{ color: '#3DD68C' }}>↑ {formatCurrency(netWorthSummary.totalAssets, profile.currency)}</span>
+            <span>·</span>
+            <span style={{ color: '#F87171' }}>↓ {formatCurrency(netWorthSummary.totalLiabilities, profile.currency)}</span>
+          </div>
+        </div>
+
+        {/* Bills */}
+        <div style={{ ...S.statCard, cursor: onNavigate ? 'pointer' : 'default' }}
+          onClick={() => onNavigate?.('bills')}>
+          <div style={S.statLabel}>Bills Due</div>
+          <div style={{ ...S.statValue, color: billsOverdue.length > 0 ? '#F87171' : '#FBBF24', fontSize: 22 }}>
+            {formatCurrency(billsDue.reduce((s, b) => s + b.amount, 0), profile.currency)}
+          </div>
+          <div style={{ fontSize: 11, color: '#5A6B8A', marginTop: 6 }}>
+            {billsOverdue.length > 0
+              ? <span style={{ color: '#F87171' }}>⚠ {billsOverdue.length} overdue!</span>
+              : `${billsDue.length} unpaid this month`}
+          </div>
+        </div>
+
+        {/* Emergency Fund */}
+        <div style={{ ...S.statCard, cursor: onNavigate ? 'pointer' : 'default' }}
+          onClick={() => onNavigate?.('emergency')}>
+          <div style={S.statLabel}>Emergency Fund</div>
+          <div style={{ ...S.statValue, color: efColor, fontSize: 22 }}>{efProgressPct}%</div>
+          <div style={S.progressBar}>
+            <div style={{ ...S.progressFill, width: `${efProgressPct}%`, background: efColor }} />
+          </div>
+          <div style={{ fontSize: 11, color: '#5A6B8A', marginTop: 4 }}>
+            {formatCurrency(efCurrent, profile.currency)} of {formatCurrency(efTarget, profile.currency)}
+          </div>
+        </div>
+
+        {/* Goals */}
+        <div style={{ ...S.statCard, cursor: onNavigate ? 'pointer' : 'default' }}
+          onClick={() => onNavigate?.('goals')}>
+          <div style={S.statLabel}>Active Goals</div>
+          <div style={{ ...S.statValue, color: '#C9A84C', fontSize: 22 }}>{goals.filter((g) => !g.completed).length}</div>
+          <div style={{ fontSize: 11, color: '#5A6B8A', marginTop: 6 }}>
+            {goals.filter((g) => g.completed).length} completed · {goals.length} total
+          </div>
+        </div>
+      </div>
+
+      {/* Goals progress preview */}
+      {activeGoals.length > 0 && (
+        <div style={S.previewCard}>
+          <div style={{ ...S.cardTitle, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>🎯 Goals Progress</span>
+            {onNavigate && <button style={S.viewAllBtn} onClick={() => onNavigate('goals')}>View all →</button>}
+          </div>
+          {activeGoals.map((g) => {
+            const gPct = g.targetAmount > 0 ? Math.min(100, Math.round((g.savedAmount / g.targetAmount) * 100)) : 0;
+            const gColor = g.category === 'emergency' ? '#F87171' : g.category === 'retirement' ? '#34D399' : '#C9A84C';
+            return (
+              <div key={g.id} style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, color: '#F0EDE4' }}>{g.name}</span>
+                  <span style={{ fontSize: 12, color: gColor, fontWeight: 600 }}>{gPct}%</span>
+                </div>
+                <div style={S.progressBar}>
+                  <div style={{ ...S.progressFill, width: `${gPct}%`, background: gColor }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+                  <span style={{ fontSize: 11, color: '#5A6B8A' }}>{formatCurrency(g.savedAmount, profile.currency)} saved</span>
+                  <span style={{ fontSize: 11, color: '#3D5070' }}>{formatCurrency(g.targetAmount, profile.currency)} target</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Warnings */}
       {warnings.length > 0 && (
         <div style={S.warningsCard}>
@@ -181,6 +287,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Habits tracker */}
+      {onToggleHabit && onAddHabit && onRemoveHabit && (
+        <HabitsTracker
+          habits={habits}
+          completedCount={habitsCompletedCount}
+          completionPct={habitsCompletionPct}
+          onToggle={onToggleHabit}
+          onAdd={onAddHabit}
+          onRemove={onRemoveHabit}
+        />
+      )}
     </div>
   );
 };
@@ -189,15 +307,15 @@ const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
   setupText: { flex: 1, fontSize: 14, color: '#E2C47A' },
   setupBtn: { padding: '8px 18px', background: '#C9A84C', color: '#0A1628', borderRadius: 8, fontWeight: 700, fontSize: 13, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap' },
-  statCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' },
+  statCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 24px rgba(0,0,0,0.3)', transition: '0.15s' },
   statLabel: { fontSize: 12, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 },
   statValueRow: { display: 'flex', alignItems: 'center', gap: 8 },
   statValue: { fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 700, color: '#F0EDE4' },
   statSub: { fontSize: 12, color: '#5A6B8A', marginTop: 6 },
   incomeEdit: { display: 'flex', gap: 8, alignItems: 'center' },
   incomeInput: { flex: 1, minWidth: 0, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 6, padding: '6px 10px', color: '#F0EDE4', fontSize: 15, fontFamily: 'Karla, sans-serif' },
-  saveBtn: { padding: '6px 12px', background: '#C9A84C', color: '#0A1628', borderRadius: 6, fontWeight: 700, fontSize: 12, fontFamily: 'Karla, sans-serif', flexShrink: 0 },
-  editBtn: { background: 'transparent', color: '#5A6B8A', fontSize: 16, padding: '2px 6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6 },
+  saveBtn: { padding: '6px 12px', background: '#C9A84C', color: '#0A1628', borderRadius: 6, fontWeight: 700, fontSize: 12, fontFamily: 'Karla, sans-serif', flexShrink: 0, border: 'none' },
+  editBtn: { background: 'transparent', color: '#5A6B8A', fontSize: 16, padding: '2px 6px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, cursor: 'pointer' },
   progressBar: { height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, marginTop: 10, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 2, transition: 'width 0.6s ease' },
   scorePanel: { borderRadius: 14, padding: '22px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
@@ -218,6 +336,8 @@ const S: Record<string, React.CSSProperties> = {
   catAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 600 },
   catBar: { width: 70, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' },
   catBarFill: { height: '100%', borderRadius: 2, transition: 'width 0.6s ease' },
+  previewCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '22px 24px' },
+  viewAllBtn: { fontSize: 12, color: '#C9A84C', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'Karla, sans-serif' },
   warningsCard: { background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 14, padding: '20px 24px' },
   warningsList: { display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 },
   warningItem: { display: 'flex', gap: 10, fontSize: 14, color: '#E2C47A', lineHeight: 1.5 },

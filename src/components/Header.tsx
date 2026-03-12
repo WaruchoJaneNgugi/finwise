@@ -21,8 +21,10 @@ const ALL_NAV: { id: AppView; label: string; icon: string }[] = [
   { id: 'goals',       label: 'Goals',      icon: '◉' },
   { id: 'bills',       label: 'Bills',      icon: '◫' },
   { id: 'networth',    label: 'Net Worth',  icon: '◐' },
+  { id: 'emergency',   label: 'Emergency',  icon: '🛡' },
   { id: 'insights',    label: 'Insights',   icon: '◑' },
   { id: 'chat',        label: 'AI Chat',    icon: '✦' },
+  { id: 'alerts',      label: 'Alerts',     icon: '📡' },
 ];
 
 // 4 always-visible tabs on mobile bottom bar
