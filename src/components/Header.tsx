@@ -13,16 +13,16 @@ interface HeaderProps {
   onExportNetWorth?: () => void;
 }
 
-const ALL_NAV: { id: AppView; label: string; icon: string; emoji: string }[] = [
-  { id: 'advisor',     label: 'Advisor',    icon: '◆', emoji: '💎' },
-  { id: 'dashboard',   label: 'Overview',   icon: '▦', emoji: '📊' },
-  { id: 'expenses',    label: 'Expenses',   icon: '◎', emoji: '💸' },
-  { id: 'investments', label: 'Invest',     icon: '◈', emoji: '📈' },
-  { id: 'goals',       label: 'Goals',      icon: '◉', emoji: '🎯' },
-  { id: 'bills',       label: 'Bills',      icon: '◫', emoji: '🗓️' },
-  { id: 'networth',    label: 'Net Worth',  icon: '◐', emoji: '🏦' },
-  { id: 'insights',    label: 'Insights',   icon: '◑', emoji: '💡' },
-  { id: 'chat',        label: 'AI Chat',    icon: '✦', emoji: '🤖' },
+const ALL_NAV: { id: AppView; label: string; icon: string }[] = [
+  { id: 'advisor',     label: 'Advisor',    icon: '◆' },
+  { id: 'dashboard',   label: 'Overview',   icon: '▦' },
+  { id: 'expenses',    label: 'Expenses',   icon: '◎' },
+  { id: 'investments', label: 'Invest',     icon: '◈' },
+  { id: 'goals',       label: 'Goals',      icon: '◉' },
+  { id: 'bills',       label: 'Bills',      icon: '◫' },
+  { id: 'networth',    label: 'Net Worth',  icon: '◐' },
+  { id: 'insights',    label: 'Insights',   icon: '◑' },
+  { id: 'chat',        label: 'AI Chat',    icon: '✦' },
 ];
 
 // 4 always-visible tabs on mobile bottom bar
@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
         .fw-nav-btn:hover { color: #C9A84C; background: rgba(201,168,76,0.07); }
         .fw-nav-btn.active { color: #E2C47A; background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.22); }
         .fw-nav-btn.active .fw-nav-pip { opacity: 1; transform: translateX(-50%) scaleX(1); }
-        .fw-nav-icon { font-size: 10px; opacity: 0.6; transition: opacity 0.18s; }
+        .fw-nav-icon { font-size: 14px; opacity: 0.6; transition: opacity 0.18s; }
         .fw-nav-btn.active .fw-nav-icon, .fw-nav-btn:hover .fw-nav-icon { opacity: 1; }
         .fw-nav-pip {
           position: absolute; bottom: -1px; left: 50%;
@@ -262,7 +262,7 @@ export const Header: React.FC<HeaderProps> = ({
         .fw-drawer.open .fw-drawer-item:nth-child(5) { animation-delay: 0.18s; }
         .fw-drawer-item:active { transform: scale(0.93); }
         .fw-drawer-item.active { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.3); }
-        .fw-drawer-emoji { font-size: 28px; line-height: 1; }
+        .fw-drawer-icon { color:#9BAAC4;font-size: 24px; line-height: 1; }
         .fw-drawer-label { font-family: 'Karla', sans-serif; font-size: 12px; font-weight: 500; color: #9BAAC4; text-align: center; }
         .fw-drawer-item.active .fw-drawer-label { color: #E2C47A; font-weight: 600; }
 
@@ -406,7 +406,7 @@ export const Header: React.FC<HeaderProps> = ({
                     className={`fw-tab-btn${activeView === item.id ? ' active' : ''}`}
                     onClick={() => onNavigate(item.id)}
                 >
-                  <span className="fw-tab-icon">{item.emoji}</span>
+                  <span className="fw-tab-icon">{item.icon}</span>
                   <span className="fw-tab-label">{item.label}</span>
                   <span className="fw-tab-pip" />
                 </button>
@@ -419,7 +419,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
             <span className="fw-tab-icon">
               {moreIsActive
-                  ? MORE_NAV.find((n) => n.id === activeView)?.emoji ?? '☰'
+                  ? MORE_NAV.find((n) => n.id === activeView)?.icon ?? '☰'
                   : '☰'}
             </span>
               <span className="fw-tab-label">More</span>
@@ -452,7 +452,7 @@ export const Header: React.FC<HeaderProps> = ({
                     className={`fw-drawer-item${activeView === item.id ? ' active' : ''}`}
                     onClick={() => handleDrawerNav(item.id)}
                 >
-                  <span className="fw-drawer-emoji">{item.emoji}</span>
+                  <span className="fw-drawer-icon">{item.icon}</span>
                   <span className="fw-drawer-label">{item.label}</span>
                 </button>
             ))}
