@@ -1,46 +1,57 @@
-import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { AppView } from '../types';
 
 /* ══════════════════════════════════════════════════════════
    THEME CONTEXT
-   Wrap App.tsx root with <ThemeProvider>
 ══════════════════════════════════════════════════════════ */
 export type Theme = 'dark' | 'light';
 
-export const ThemeContext = createContext<{
+export const ThemeContext = React.createContext<{
   theme: Theme;
   toggleTheme: () => void;
 }>({ theme: 'dark', toggleTheme: () => {} });
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => React.useContext(ThemeContext);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     try {
-      const s = localStorage.getItem('fw-theme');
-      if (s === 'light' || s === 'dark') return s;
+      const stored = localStorage.getItem('fw-theme');
+      if (stored === 'light' || stored === 'dark') return stored;
+      // Check system preference
       return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch { return 'dark'; }
+    } catch {
+      return 'dark';
+    }
   });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('fw-theme', theme); } catch {}
+    try {
+      localStorage.setItem('fw-theme', theme);
+    } catch {}
   }, [theme]);
 
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+  const toggleTheme = useCallback(() => {
+    setTheme(t => (t === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+      <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        {children}
+      </ThemeContext.Provider>
   );
 };
 
 /* ══════════════════════════════════════════════════════════
    NAV ITEMS
 ══════════════════════════════════════════════════════════ */
-interface NavItem { id: AppView; label: string; icon: string; group: 'main' | 'plan' | 'intel' }
+interface NavItem {
+  id: AppView;
+  label: string;
+  icon: string;
+  group: 'main' | 'plan' | 'intel';
+}
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard',   label: 'Overview',   icon: '◧',  group: 'main' },
@@ -58,7 +69,8 @@ const NAV_ITEMS: NavItem[] = [
 
 // Bottom bar primary tabs (mobile)
 const PRIMARY_MOBILE: AppView[] = ['dashboard', 'expenses', 'advisor', 'goals', 'investments'];
-const MORE_ITEMS = NAV_ITEMS.filter(n => !PRIMARY_MOBILE.includes(n.id));
+// MORE_ITEMS is commented out because the More sheet is currently disabled
+// const MORE_ITEMS = NAV_ITEMS.filter(n => !PRIMARY_MOBILE.includes(n.id));
 
 const SCORE_COLOR: Record<string, string> = {
   excellent: 'var(--score-excellent)',
@@ -87,219 +99,297 @@ interface HeaderProps {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════ */
 export const Header: React.FC<HeaderProps> = ({
-  activeView, onNavigate, score, scoreLevel,
-  userName, onLock, onExportExpenses, onExportInvestments, onExportNetWorth,
-}) => {
+                                                activeView,
+                                                onNavigate,
+                                                score,
+                                                scoreLevel,
+                                                userName,
+                                                onLock,
+                                                onExportExpenses,
+                                                onExportInvestments,
+                                                onExportNetWorth,
+                                              }) => {
   const { theme, toggleTheme } = useTheme();
   const scoreColor = SCORE_COLOR[scoreLevel] ?? 'var(--text-3)';
 
-  const [collapsed,   setCollapsed]   = useState(false);
-  const [mobileSide,  setMobileSide]  = useState(false);
-  const [moreOpen,    setMoreOpen]    = useState(false);
-  const [scrolled,    setScrolled]    = useState(false);
-  const [userMenu,    setUserMenu]    = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileSide, setMobileSide] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [userMenu, setUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // const moreActive = MORE_ITEMS.some(n => n.id === activeView);
-  const circLen = 81.7; // 2π × 13
+  // Memoized nav groups
+  const { mainItems, planItems, intelItems } = useMemo(() => ({
+    mainItems:  NAV_ITEMS.filter(n => n.group === 'main'),
+    planItems:  NAV_ITEMS.filter(n => n.group === 'plan'),
+    intelItems: NAV_ITEMS.filter(n => n.group === 'intel'),
+  }), []);
 
+  // Scroll effect
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', h, { passive: true });
-    return () => window.removeEventListener('scroll', h);
+    const handleScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Click outside for user menu
   useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setUserMenu(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setUserMenu(false);
+      }
     };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Lock body scroll when sidebars are open
   useEffect(() => {
-    document.body.style.overflow = (mobileSide || moreOpen) ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = mobileSide || moreOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [mobileSide, moreOpen]);
 
-  const go = (id: AppView) => {
+  const go = useCallback((id: AppView) => {
     onNavigate(id);
     setMobileSide(false);
     setMoreOpen(false);
-  };
+  }, [onNavigate]);
 
-  /* Score ring helper */
-  const scoreRing = (size: number) => {
+  /* Score ring helper – now uses dynamic circumference */
+  const scoreRing = useCallback((size: number) => {
     const r = size * 0.36;
-    const fill = (score / 100) * circLen;
+    const circumference = 2 * Math.PI * r;
+    const fill = (score / 100) * circumference;
     return (
-      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border-s)" strokeWidth={size * 0.088} />
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={scoreColor} strokeWidth={size * 0.088}
-            strokeLinecap="round"
-            style={{ strokeDasharray: `${fill} ${circLen}`, filter: `drop-shadow(0 0 ${size*0.1}px ${scoreColor}80)`, transition: 'stroke-dasharray .8s ease' }} />
-        </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.25, fontWeight: 700, color: scoreColor }}>
-          {score}
+        <div
+            style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}
+            role="img"
+            aria-label={`Financial health score: ${score}`}
+        >
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+            <circle
+                cx={size/2}
+                cy={size/2}
+                r={r}
+                fill="none"
+                stroke="var(--border-s)"
+                strokeWidth={size * 0.088}
+            />
+            <circle
+                cx={size/2}
+                cy={size/2}
+                r={r}
+                fill="none"
+                stroke={scoreColor}
+                strokeWidth={size * 0.088}
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: `${fill} ${circumference}`,
+                  filter: `drop-shadow(0 0 ${size*0.1}px ${scoreColor}80)`,
+                  transition: 'stroke-dasharray .8s ease',
+                }}
+            />
+          </svg>
+          <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: size * 0.25,
+                fontWeight: 700,
+                color: scoreColor,
+              }}
+          >
+            {score}
+          </div>
         </div>
-      </div>
     );
-  };
-
-  const mainItems  = NAV_ITEMS.filter(n => n.group === 'main');
-  const planItems  = NAV_ITEMS.filter(n => n.group === 'plan');
-  const intelItems = NAV_ITEMS.filter(n => n.group === 'intel');
+  }, [score, scoreColor]);
 
   return (
-    <>
-      {/* ── MOBILE SIDEBAR BACKDROP ─────────────────────────── */}
-      <div
-        className={`fw-sb-back${mobileSide ? ' fw-sb-back--open' : ''}`}
-        onClick={() => setMobileSide(false)}
-      />
+      <>
+        {/* Mobile sidebar backdrop */}
+        <div
+            className={`fw-sb-back${mobileSide ? ' fw-sb-back--open' : ''}`}
+            onClick={() => setMobileSide(false)}
+            aria-hidden="true"
+        />
 
-      {/* ══════════ SIDEBAR ══════════════════════════════════ */}
-      <aside className={[
-        'fw-sidebar',
-        collapsed  ? 'collapsed'    : '',
-        mobileSide ? 'mobile-open'  : '',
-      ].filter(Boolean).join(' ')}>
+        {/* Sidebar */}
+        <aside
+            className={[
+              'fw-sidebar',
+              collapsed && 'collapsed',
+              mobileSide && 'mobile-open',
+            ].filter(Boolean).join(' ')}
+            aria-label="Main navigation"
+        >
+          {/* Logo row */}
+          <div className="fw-sidebar-hd fw-sidebar-hd-root">
+            <button className="fw-logo-btn" onClick={() => go('dashboard')} aria-label="Go to dashboard">
+              <div className="fw-logo-mark">
+                <span className="fw-logo-sym">Ƒ</span>
+              </div>
+              <div className="fw-reveal fw-logo-text">
+                <div className="fw-logo-name">FinWise</div>
+                <div className="fw-logo-tag">YOUR MONEY, MASTERED</div>
+              </div>
+            </button>
+            <button
+                className="fw-collapse-btn"
+                onClick={() => {
+                  if (mobileSide) setMobileSide(false);
+                  else setCollapsed(c => !c);
+                }}
+                aria-label={mobileSide ? 'Close sidebar' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              <span className="fw-collapse-icon">{mobileSide ? '✕' : (collapsed ? '›' : '‹')}</span>
+            </button>
+          </div>
 
-        {/* Logo row */}
-        <div className="fw-sidebar-hd fw-sidebar-hd-root">
-          <button className="fw-logo-btn" onClick={() => go('dashboard')}>
-            <div className="fw-logo-mark">
-              <span className="fw-logo-sym">Ƒ</span>
-            </div>
-            <div className="fw-reveal fw-logo-text">
-              <div className="fw-logo-name">FinWise</div>
-              <div className="fw-logo-tag">YOUR MONEY, MASTERED</div>
-            </div>
-          </button>
-          <button className="fw-collapse-btn" onClick={() => {
-            if (mobileSide) setMobileSide(false);
-            else setCollapsed(c => !c);
-          }}>
-            <span className="fw-collapse-icon">{mobileSide ? '✕' : (collapsed ? '›' : '‹')}</span>
-          </button>
-        </div>
+          {/* Navigation groups */}
+          <div className="fw-sidebar-scroll">
+            {[
+              { title: 'Main', items: mainItems },
+              { title: 'Planning', items: planItems },
+              { title: 'Intelligence', items: intelItems },
+            ].map(group => (
+                <div key={group.title} style={{ padding: '0 10px 4px' }}>
+                  <div className="fw-sec-lbl fw-reveal">{group.title}</div>
+                  {group.items.map((item: NavItem) => {
+                    const isActive = activeView === item.id;
+                    return (
+                        <button
+                            key={item.id}
+                            className={`fw-navbtn${isActive ? ' fw-navbtn--active' : ''}`}
+                            onClick={() => go(item.id)}
+                            title={item.label}
+                            aria-current={isActive ? 'page' : undefined}
+                        >
+                          {isActive && <span className="fw-navbtn-pip" aria-hidden="true" />}
+                          <span className="fw-navbtn-icon" aria-hidden="true">{item.icon}</span>
+                          <span className="fw-reveal fw-navbtn-label">{item.label}</span>
+                          {item.id === 'chat' && (
+                              <span className="fw-reveal fw-ai-chip" aria-label="AI feature">AI</span>
+                          )}
+                        </button>
+                    );
+                  })}
+                </div>
+            ))}
+          </div>
 
-        {/* Nav groups */}
-        <div className="fw-sidebar-scroll">
-          {[
-            { title: 'Main',         items: mainItems  },
-            { title: 'Planning',     items: planItems  },
-            { title: 'Intelligence', items: intelItems },
-          ].map(grp => (
-            <div key={grp.title} style={{ padding: '0 10px 4px' }}>
-              <div className="fw-sec-lbl fw-reveal">{grp.title}</div>
-              {grp.items.map(item => {
-                const isAct = activeView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    className={`fw-navbtn${isAct ? ' fw-navbtn--active' : ''}`}
-                    onClick={() => go(item.id)}
-                    title={item.label}
-                  >
-                    {isAct && <span className="fw-navbtn-pip" />}
-                    <span className="fw-navbtn-icon">{item.icon}</span>
-                    <span className="fw-reveal fw-navbtn-label">{item.label}</span>
-                    {item.id === 'chat' && (
-                      <span className="fw-reveal fw-ai-chip">AI</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="fw-sidebar-footer">
-          {/* Score pill */}
-          <div className="fw-score-pill">
-            {scoreRing(36)}
-            <div className="fw-reveal fw-score-info">
-              <div className="fw-score-num" style={{ color: scoreColor }}>{score}</div>
-              <div className="fw-score-sub">Financial Health</div>
-            </div>
-            <span className="fw-reveal fw-score-badge" style={{ color: scoreColor, background: `${scoreColor}18`, border: `1px solid ${scoreColor}28` }}>
+          {/* Footer */}
+          <div className="fw-sidebar-footer">
+            {/* Score pill */}
+            <div className="fw-score-pill">
+              {scoreRing(36)}
+              <div className="fw-reveal fw-score-info">
+                <div className="fw-score-num" style={{ color: scoreColor }}>{score}</div>
+                <div className="fw-score-sub">Financial Health</div>
+              </div>
+              <span
+                  className="fw-reveal fw-score-badge"
+                  style={{
+                    color: scoreColor,
+                    background: `${scoreColor}18`,
+                    border: `1px solid ${scoreColor}28`,
+                  }}
+              >
               {scoreLevel}
             </span>
-          </div>
-          {/* Theme toggle */}
-          <button className="fw-theme-btn" onClick={toggleTheme}>
-            <span className="fw-theme-emoji">{theme === 'dark' ? '🌙' : '☀️'}</span>
-            <span className="fw-reveal fw-theme-label">{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span>
-            <div className={`fw-reveal fw-track${theme === 'light' ? ' fw-track--on' : ''}`}>
-              <div className="fw-thumb" />
             </div>
-          </button>
-        </div>
-      </aside>
+            {/* Theme toggle */}
+            <button className="fw-theme-btn" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+              <span className="fw-theme-emoji" aria-hidden="true">{theme === 'dark' ? '🌙' : '☀️'}</span>
+              <span className="fw-reveal fw-theme-label">{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span>
+              <div className={`fw-reveal fw-track${theme === 'light' ? ' fw-track--on' : ''}`} aria-hidden="true">
+                <div className="fw-thumb" />
+              </div>
+            </button>
+          </div>
+        </aside>
 
-      {/* ══════════ TOPBAR ═══════════════════════════════════ */}
-      <div className={`fw-topbar${scrolled ? ' scrolled' : ''}`}>
-        <div className="fw-topbar-inner">
+        {/* Topbar */}
+        <div className={`fw-topbar${scrolled ? ' scrolled' : ''}`}>
+          <div className="fw-topbar-inner">
+            {/* Hamburger */}
+            <button
+                className="fw-ham"
+                onClick={() => setMobileSide(o => !o)}
+                aria-label="Toggle menu"
+                aria-expanded={mobileSide}
+            >
+              <span /><span /><span />
+            </button>
 
-          {/* Hamburger */}
-          <button className="fw-ham" onClick={() => setMobileSide(o => !o)} aria-label="Toggle menu">
-            <span /><span /><span />
-          </button>
-
-          {/* Page title */}
-          <span className="fw-page-title">
+            {/* Page title */}
+            <span className="fw-page-title">
             {NAV_ITEMS.find(n => n.id === activeView)?.label ?? 'FinWise'}
           </span>
 
-          <div style={{ flex: 1 }} />
+            <div style={{ flex: 1 }} />
 
-          {/* Theme btn (mobile) */}
-          <button className="fw-tbar-theme-btn" onClick={toggleTheme} title="Toggle theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-
-          {/* Score ring (topbar) */}
-          <div className="fw-tbar-score" style={{ color: scoreColor }}>
-            {scoreRing(24)}
-            <div className="fw-tbar-score-text">
-              <div className="fw-tbar-score-num">{score}</div>
-              <div className="fw-tbar-score-lbl">Score</div>
-            </div>
-          </div>
-
-          {/* User menu */}
-          <div style={{ position: 'relative' }} ref={menuRef}>
-            <button className="fw-user-btn" onClick={() => setUserMenu(o => !o)}>
-              <div className="fw-avatar">
-                {userName ? userName[0].toUpperCase() : 'U'}
-              </div>
-              {userName && <span className="fw-user-name">{userName}</span>}
-              <span className="fw-user-caret">▾</span>
+            {/* Theme button (mobile) */}
+            <button
+                className="fw-tbar-theme-btn"
+                onClick={toggleTheme}
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
             </button>
 
-            {userMenu && (
-              <div className="fw-dropdown" onClick={() => setUserMenu(false)}>
-                {userName && (
-                  <div className="fw-dropdown-head">
-                    <div className="fw-dropdown-name">{userName}</div>
-                    <div className="fw-dropdown-sub">FinWise Profile</div>
-                  </div>
-                )}
-                <button className="fw-dropdown-item" onClick={onExportExpenses}>⬇ Export Expenses</button>
-                <button className="fw-dropdown-item" onClick={onExportInvestments}>⬇ Export Investments</button>
-                <button className="fw-dropdown-item" onClick={onExportNetWorth}>⬇ Export Net Worth</button>
-                <div className="fw-dropdown-sep" />
-                <button className="fw-dropdown-item fw-dropdown-item--danger" onClick={onLock}>🔒 Lock App</button>
+            {/* Score ring (topbar) */}
+            <div className="fw-tbar-score" style={{ color: scoreColor }}>
+              {scoreRing(24)}
+              <div className="fw-tbar-score-text">
+                <div className="fw-tbar-score-num">{score}</div>
+                <div className="fw-tbar-score-lbl">Score</div>
               </div>
-            )}
+            </div>
+
+            {/* User menu */}
+            <div style={{ position: 'relative' }} ref={menuRef}>
+              <button
+                  className="fw-user-btn"
+                  onClick={() => setUserMenu(o => !o)}
+                  aria-label="User menu"
+                  aria-expanded={userMenu}
+              >
+                <div className="fw-avatar">
+                  {userName ? userName[0].toUpperCase() : 'U'}
+                </div>
+                {userName && <span className="fw-user-name">{userName}</span>}
+                <span className="fw-user-caret" aria-hidden="true">▾</span>
+              </button>
+
+              {userMenu && (
+                  <div className="fw-dropdown" role="menu">
+                    {userName && (
+                        <div className="fw-dropdown-head" role="presentation">
+                          <div className="fw-dropdown-name">{userName}</div>
+                          <div className="fw-dropdown-sub">FinWise Profile</div>
+                        </div>
+                    )}
+                    <button className="fw-dropdown-item" onClick={onExportExpenses} role="menuitem">⬇ Export Expenses</button>
+                    <button className="fw-dropdown-item" onClick={onExportInvestments} role="menuitem">⬇ Export Investments</button>
+                    <button className="fw-dropdown-item" onClick={onExportNetWorth} role="menuitem">⬇ Export Net Worth</button>
+                    <div className="fw-dropdown-sep" role="separator" />
+                    <button className="fw-dropdown-item fw-dropdown-item--danger" onClick={onLock} role="menuitem">🔒 Lock App</button>
+                  </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ══════════ MOBILE BOTTOM NAV ════════════════════════ */}
+
+        {/* ══════════ MOBILE BOTTOM NAV ════════════════════════ */}
       <nav className="fw-bottom-nav">
         <div className="fw-bottom-nav-inner">
           {PRIMARY_MOBILE.map(id => {
