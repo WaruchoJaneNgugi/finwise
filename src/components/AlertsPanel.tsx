@@ -116,7 +116,7 @@ Please assist urgently.`;
         <p style={{ fontSize: 13, color: '#9BAAC4', marginBottom: 20, lineHeight: 1.6 }}>
           Set up your financial advisor or trusted person's contact details. When you trigger an SOS, they'll instantly receive your complete financial snapshot.
         </p>
-        <div className="form-grid" style={{ marginBottom: 16 }}>
+        <div className="alerts-form-grid" style={{ marginBottom: 16 }}>
           <div style={S.field}>
             <label style={S.label}>Contact Name</label>
             <input style={S.input} value={form.name} placeholder="e.g. My Financial Advisor"
@@ -156,7 +156,7 @@ Please assist urgently.`;
           They'll receive your income, expenses, bills, net worth, goals, and emergency fund status.
         </p>
 
-        <div style={S.sosGrid}>
+        <div className="sos-grid">
           {/* Email */}
           <button style={{ ...S.sosBtn, ...(contact.email ? S.sosEmail : S.sosDisabled) }}
             onClick={sendEmail} disabled={!contact.email}>
@@ -243,8 +243,7 @@ const S: Record<string, React.CSSProperties> = {
   label: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em' },
   input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '11px 14px', color: '#F0EDE4', fontSize: 13, fontFamily: 'Karla, sans-serif', outline: 'none', transition: '0.15s' },
   primaryBtn: { padding: '11px 22px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 10, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', border: 'none', cursor: 'pointer' },
-  sosGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 },
-  sosBtn: { padding: '22px 16px', borderRadius: 14, border: '1px solid', cursor: 'pointer', textAlign: 'center', transition: '0.15s', background: 'transparent' },
+  sosBtn: { padding: '22px 16px', borderRadius: 14, border: '1px solid', cursor: 'pointer', textAlign: 'center', transition: '0.15s', background: 'transparent', minHeight: 44 },
   sosEmail: { borderColor: 'rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.06)' },
   sosWhatsapp: { borderColor: 'rgba(61,214,140,0.3)', background: 'rgba(61,214,140,0.06)' },
   sosPhone: { borderColor: 'rgba(96,165,250,0.3)', background: 'rgba(96,165,250,0.06)' },

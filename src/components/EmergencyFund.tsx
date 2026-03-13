@@ -52,12 +52,12 @@ export const EmergencyFund: React.FC<EmergencyFundProps> = ({
   return (
     <div style={S.container} className="animate-in">
       {/* Page header */}
-      <div style={S.pageHeader}>
+      <div style={S.pageHeader} className="page-header-row">
         <div>
           <h1 style={S.pageTitle}>🛡 Emergency Fund</h1>
           <p style={S.pageSub}>Your financial safety net — aim for {data.targetMonths} months of living expenses</p>
         </div>
-        <div style={S.targetToggle}>
+        <div style={S.targetToggle} className="toggle-group">
           {[3, 6, 9].map((m) => (
             <button key={m}
               style={{ ...S.toggleBtn, ...(data.targetMonths === m ? S.toggleActive : {}) }}
@@ -74,7 +74,7 @@ export const EmergencyFund: React.FC<EmergencyFundProps> = ({
         <div style={S.progressTop}>
           <div>
             <div style={{ fontSize: 12, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Current Fund</div>
-            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 40, fontWeight: 700, color: statusColor }}>
+            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(26px, 5vw, 40px)', fontWeight: 700, color: statusColor }}>
               {formatCurrency(data.currentAmount, currency)}
             </div>
             <div style={{ fontSize: 13, color: '#9BAAC4', marginTop: 4 }}>
@@ -82,7 +82,7 @@ export const EmergencyFund: React.FC<EmergencyFundProps> = ({
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 52, fontWeight: 700, color: statusColor, lineHeight: 1 }}>{progressPct}%</div>
+            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(36px, 6vw, 52px)', fontWeight: 700, color: statusColor, lineHeight: 1 }}>{progressPct}%</div>
             <div style={{ fontSize: 12, color: '#5A6B8A' }}>complete</div>
           </div>
         </div>
@@ -93,7 +93,7 @@ export const EmergencyFund: React.FC<EmergencyFundProps> = ({
         </div>
 
         {/* KPI row */}
-        <div style={S.kpiRow}>
+        <div className="ef-kpi-row">
           {[
             { label: 'Months Covered', value: `${monthsCovered} mo`, color: statusColor },
             { label: 'Still Needed', value: formatCurrency(amountLeft, currency), color: amountLeft > 0 ? '#F87171' : '#3DD68C' },
@@ -109,7 +109,7 @@ export const EmergencyFund: React.FC<EmergencyFundProps> = ({
       </div>
 
       {/* Action + Recommendations row */}
-      <div style={S.twoCol}>
+      <div className="ef-two-col">
         {/* Action card */}
         <div style={S.card}>
           <div style={S.cardTitle}>Manage Fund</div>
@@ -227,13 +227,11 @@ const S: Record<string, React.CSSProperties> = {
   targetToggle: { display: 'flex', gap: 6 },
   toggleBtn: { padding: '7px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#5A6B8A', fontFamily: 'Karla, sans-serif', fontSize: 13, cursor: 'pointer' },
   toggleActive: { borderColor: '#C9A84C', background: 'rgba(201,168,76,0.1)', color: '#C9A84C', fontWeight: 700 },
-  progressCard: { borderRadius: 16, padding: '28px 32px', border: '1px solid' },
+  progressCard: { borderRadius: 16, padding: 'clamp(16px, 4vw, 32px)', border: '1px solid' },
   progressTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 },
   bigBar: { height: 14, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden', marginBottom: 24 },
   bigBarFill: { height: '100%', borderRadius: 99, transition: 'width 0.8s cubic-bezier(0.4,0,0.2,1)' },
-  kpiRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 },
   kpi: { background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '12px 14px', border: '1px solid rgba(255,255,255,0.04)' },
-  twoCol: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
   card: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 26px' },
   cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4', marginBottom: 18 },
   tabs: { display: 'flex', gap: 6, marginBottom: 18 },

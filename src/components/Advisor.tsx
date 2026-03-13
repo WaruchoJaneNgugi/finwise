@@ -167,7 +167,7 @@ const HABITS = [
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
   cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: '#F0EDE4', marginBottom: 16 },
-  incomeCard: { background: 'linear-gradient(135deg, #132040 0%, #1A2E50 100%)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 14, padding: '26px 28px' },
+  incomeCard: { background: 'linear-gradient(135deg, #132040 0%, #1A2E50 100%)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 14, padding: 'clamp(16px, 3vw, 28px)' },
   incomeLeft: { flex: 1, minWidth: 0 },
   incomeDesc: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.6, marginBottom: 16 },
   inputWrap: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 9, overflow: 'hidden' },

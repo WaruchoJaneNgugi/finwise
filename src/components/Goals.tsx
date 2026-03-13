@@ -54,7 +54,7 @@ export const Goals: React.FC<GoalsProps> = ({
     <div style={S.container} className="animate-in">
 
       {/* Summary bar */}
-      <div style={S.summaryBar}>
+      <div className="goals-summary-bar">
         {[
           { label: 'Active Goals',     val: activeGoals.length,                         unit: '',    color: '#60A5FA' },
           { label: 'Total Targeted',   val: formatCurrency(totalTargeted, currency),     unit: '',    color: '#F0EDE4' },
@@ -250,7 +250,7 @@ export const Goals: React.FC<GoalsProps> = ({
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
   cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4', marginBottom: 16 },
-  summaryBar: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 },
+  summaryBar: {}, /* now handled by .goals-summary-bar CSS class */
   summaryItem: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '16px 18px' },
   summaryLabel: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
   summaryVal: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700 },

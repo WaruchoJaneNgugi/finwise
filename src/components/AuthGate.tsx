@@ -55,6 +55,12 @@ export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile,
       <style>{`
         @keyframes authFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .auth-card { animation: authFadeIn 0.4s ease forwards; }
+        @media (max-width: 480px) {
+          .auth-card { padding: 28px 20px !important; border-radius: 16px !important; }
+        }
+        @media (max-width: 360px) {
+          .auth-card { padding: 22px 14px !important; }
+        }
       `}</style>
 
       <div style={S.bg} />
@@ -171,7 +177,7 @@ const S: Record<string, React.CSSProperties> = {
   fields: { display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
   label: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em' },
-  input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#F0EDE4', fontSize: 15, fontFamily: 'Karla, sans-serif' },
+  input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#F0EDE4', fontSize: 16, fontFamily: 'Karla, sans-serif', width: '100%' },
   pinWrap: { marginBottom: 16 },
   pinInput: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 10, padding: '14px 16px', color: '#F0EDE4', fontSize: 24, fontFamily: 'Karla, sans-serif', letterSpacing: 8, textAlign: 'center' },
   errorMsg: { fontSize: 13, color: '#F87171', background: 'rgba(248,113,113,0.08)', padding: '10px 14px', borderRadius: 8, marginBottom: 12 },

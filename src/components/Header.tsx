@@ -1,481 +1,446 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import type { AppView } from '../types';
 
-interface HeaderProps {
-  activeView: AppView;
-  onNavigate: (view: AppView) => void;
-  score: number;
-  scoreLevel: string;
-  userName?: string;
-  onLock?: () => void;
-  onExportExpenses?: () => void;
-  onExportInvestments?: () => void;
-  onExportNetWorth?: () => void;
-}
+/* ══════════════════════════════════════════════════════════
+   THEME CONTEXT
+   Wrap App.tsx root with <ThemeProvider>
+══════════════════════════════════════════════════════════ */
+export type Theme = 'dark' | 'light';
 
-const ALL_NAV: { id: AppView; label: string; icon: string }[] = [
-  { id: 'advisor',     label: 'Advisor',    icon: '◆' },
-  { id: 'dashboard',   label: 'Overview',   icon: '▦' },
-  { id: 'expenses',    label: 'Expenses',   icon: '◎' },
-  { id: 'investments', label: 'Invest',     icon: '◈' },
-  { id: 'goals',       label: 'Goals',      icon: '◉' },
-  { id: 'bills',       label: 'Bills',      icon: '◫' },
-  { id: 'networth',    label: 'Net Worth',  icon: '◐' },
-  { id: 'emergency',   label: 'Emergency',  icon: '🛡' },
-  { id: 'insights',    label: 'Insights',   icon: '◑' },
-  { id: 'chat',        label: 'AI Chat',    icon: '✦' },
-  { id: 'alerts',      label: 'Alerts',     icon: '📡' },
-];
+export const ThemeContext = createContext<{
+  theme: Theme;
+  toggleTheme: () => void;
+}>({ theme: 'dark', toggleTheme: () => {} });
 
-// 4 always-visible tabs on mobile bottom bar
-const PRIMARY_NAV = ALL_NAV.slice(0, 4);
-// Remaining go into the "More" slide-up drawer
-const MORE_NAV = ALL_NAV.slice(4);
+export const useTheme = () => useContext(ThemeContext);
 
-const LEVEL_COLORS: Record<string, string> = {
-  excellent: '#3DD68C', good: '#60A5FA', fair: '#FBBF24', poor: '#FB923C', critical: '#F87171',
-};
-
-export const Header: React.FC<HeaderProps> = ({
-                                                activeView, onNavigate, score, scoreLevel,
-                                                userName, onLock, onExportExpenses, onExportInvestments, onExportNetWorth,
-                                              }) => {
-  const scoreColor = LEVEL_COLORS[scoreLevel] || '#9BAAC4';
-  const [scrolled, setScrolled]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  const moreIsActive = MORE_NAV.some((n) => n.id === activeView);
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      const s = localStorage.getItem('fw-theme');
+      if (s === 'light' || s === 'dark') return s;
+      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    } catch { return 'dark'; }
+  });
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem('fw-theme', theme); } catch {}
+  }, [theme]);
 
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, []);
-
-  // Prevent body scroll when drawer open
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [drawerOpen]);
-
-  const handleDrawerNav = (id: AppView) => {
-    onNavigate(id);
-    setDrawerOpen(false);
-  };
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   return (
-      <>
-        <style>{`
-        /* ─── TOP HEADER ────────────────────────────────────── */
-        .fw-header { position: sticky; top: 0; z-index: 200; transition: box-shadow 0.3s; }
-        .fw-header.scrolled { box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-        .fw-header-bg {
-          position: absolute; inset: 0;
-          background: rgba(8,17,32,0.93);
-          backdrop-filter: blur(24px) saturate(180%);
-          -webkit-backdrop-filter: blur(24px) saturate(180%);
-          border-bottom: 1px solid rgba(201,168,76,0.12);
-          z-index: 0;
-        }
-        .fw-header-inner {
-          position: relative; z-index: 1; max-width: 1300px;
-          margin: 0 auto; padding: 0 24px; height: 66px;
-          display: flex; align-items: center;
-        }
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
 
-        /* ─── LOGO ──────────────────────────────────────────── */
-        .fw-logo { display: flex; align-items: center; gap: 11px; text-decoration: none; flex-shrink: 0; margin-right: 24px; }
-        .fw-logo-mark {
-          width: 36px; height: 36px; border-radius: 10px;
-          background: linear-gradient(145deg, #C9A84C 0%, #E8D08A 50%, #B8922E 100%);
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 2px 12px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .fw-logo:hover .fw-logo-mark { transform: translateY(-1px) rotate(-3deg); box-shadow: 0 6px 20px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.3); }
-        .fw-logo-symbol { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 800; color: #0A1628; line-height: 1; }
-        .fw-logo-text { display: flex; flex-direction: column; gap: 1px; }
-        .fw-logo-name { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 700; color: #E2C47A; line-height: 1; }
-        .fw-logo-tagline { font-family: 'Karla', sans-serif; font-size: 9.5px; font-weight: 500; color: #3D5070; letter-spacing: 0.14em; text-transform: uppercase; }
+/* ══════════════════════════════════════════════════════════
+   NAV ITEMS
+══════════════════════════════════════════════════════════ */
+interface NavItem { id: AppView; label: string; icon: string; group: 'main' | 'plan' | 'intel' }
 
-        /* ─── DESKTOP NAV ───────────────────────────────────── */
-        .fw-nav-wrap { flex: 1; position: relative; overflow: hidden; min-width: 0; }
-        /* Fade edges to hint overflow */
-        .fw-nav-wrap::before, .fw-nav-wrap::after {
-          content: ''; position: absolute; top: 0; bottom: 0; width: 28px; z-index: 2; pointer-events: none;
-        }
-        .fw-nav-wrap::before { left: 0; background: linear-gradient(to right, rgba(8,17,32,0.85), transparent); }
-        .fw-nav-wrap::after  { right: 0; background: linear-gradient(to left, rgba(8,17,32,0.85), transparent); }
-        .fw-nav { display: flex; align-items: center; gap: 1px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding: 0 6px; }
-        .fw-nav::-webkit-scrollbar { display: none; }
-        .fw-nav-btn {
-          position: relative; display: flex; align-items: center; gap: 6px;
-          padding: 6px 13px; border-radius: 9px; border: 1px solid transparent;
-          background: transparent; color: #4A5E7A;
-          font-family: 'Karla', sans-serif; font-size: 13px; font-weight: 500;
-          cursor: pointer; white-space: nowrap; outline: none;
-          transition: color 0.18s, background 0.18s, border-color 0.18s;
-          flex-shrink: 0;
-        }
-        .fw-nav-btn:hover { color: #C9A84C; background: rgba(201,168,76,0.07); }
-        .fw-nav-btn.active { color: #E2C47A; background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.22); }
-        .fw-nav-btn.active .fw-nav-pip { opacity: 1; transform: translateX(-50%) scaleX(1); }
-        .fw-nav-icon { font-size: 14px; opacity: 0.6; transition: opacity 0.18s; }
-        .fw-nav-btn.active .fw-nav-icon, .fw-nav-btn:hover .fw-nav-icon { opacity: 1; }
-        .fw-nav-pip {
-          position: absolute; bottom: -1px; left: 50%;
-          transform: translateX(-50%) scaleX(0); width: 18px; height: 2px; border-radius: 2px;
-          background: linear-gradient(90deg, #C9A84C, #E2C47A);
-          opacity: 0; transition: opacity 0.2s, transform 0.2s;
-        }
-        .fw-ai-badge {
-          display: inline-flex; align-items: center; justify-content: center;
-          width: 15px; height: 15px; border-radius: 4px;
-          background: linear-gradient(135deg, #C9A84C, #E2C47A);
-          color: #0A1628; font-size: 7px; font-weight: 800; margin-left: 2px;
-        }
+const NAV_ITEMS: NavItem[] = [
+  { id: 'dashboard',   label: 'Overview',   icon: '◧',  group: 'main' },
+  { id: 'advisor',     label: 'Advisor',    icon: '◆',  group: 'main' },
+  { id: 'expenses',    label: 'Expenses',   icon: '◎',  group: 'main' },
+  { id: 'investments', label: 'Invest',     icon: '◈',  group: 'main' },
+  { id: 'goals',       label: 'Goals',      icon: '◉',  group: 'plan' },
+  { id: 'bills',       label: 'Bills',      icon: '◫',  group: 'plan' },
+  { id: 'networth',    label: 'Net Worth',  icon: '◐',  group: 'plan' },
+  { id: 'emergency',   label: 'Emergency',  icon: '⬡',  group: 'plan' },
+  { id: 'insights',    label: 'Insights',   icon: '◑',  group: 'intel' },
+  { id: 'chat',        label: 'AI Chat',    icon: '✦',  group: 'intel' },
+  { id: 'alerts',      label: 'Alerts',     icon: '◬',  group: 'intel' },
+];
 
-        /* ─── DIVIDER ───────────────────────────────────────── */
-        .fw-divider { width: 1px; height: 28px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08), transparent); margin: 0 16px; flex-shrink: 0; }
+// Bottom bar primary tabs (mobile)
+const PRIMARY_MOBILE: AppView[] = ['dashboard', 'expenses', 'advisor', 'goals', 'investments'];
+const MORE_ITEMS = NAV_ITEMS.filter(n => !PRIMARY_MOBILE.includes(n.id));
 
-        /* ─── DESKTOP SCORE CHIP ────────────────────────────── */
-        .fw-score-chip { display: flex; align-items: center; gap: 9px; padding: 6px 14px 6px 8px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); flex-shrink: 0; }
-        .fw-score-ring { position: relative; width: 30px; height: 30px; flex-shrink: 0; }
-        .fw-score-ring svg { transform: rotate(-90deg); }
-        .fw-score-ring-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 2.5; }
-        .fw-score-ring-fill { fill: none; stroke-width: 2.5; stroke-linecap: round; transition: stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1); }
-        .fw-score-ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Karla', sans-serif; font-size: 9px; font-weight: 700; }
-        .fw-score-num { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; line-height: 1; }
-        .fw-score-lbl { font-family: 'Karla', sans-serif; font-size: 9px; font-weight: 500; color: #3D5070; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px; }
-        .fw-score-level { font-size: 10px; font-weight: 700; font-family: 'Karla', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; }
+const SCORE_COLOR: Record<string, string> = {
+  excellent: 'var(--score-excellent)',
+  good:      'var(--score-good)',
+  fair:      'var(--score-fair)',
+  poor:      'var(--score-poor)',
+  critical:  'var(--score-critical)',
+};
 
-        /* ─── DESKTOP USER MENU ─────────────────────────────── */
-        .fw-user-wrap { position: relative; flex-shrink: 0; margin-left: 10px; }
-        .fw-user-btn { display: flex; align-items: center; gap: 7px; padding: 5px 9px; border-radius: 10px; background: transparent; border: 1px solid rgba(255,255,255,0.07); color: #9BAAC4; cursor: pointer; transition: 0.15s; }
-        .fw-user-btn:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.12); }
-        .fw-user-avatar { width: 26px; height: 26px; border-radius: 7px; background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.25); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #C9A84C; font-family: 'Cormorant Garamond', serif; }
-        .fw-caret { font-size: 9px; color: #3D5070; }
-        .fw-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #0F1F3D; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 8px; min-width: 190px; box-shadow: 0 16px 40px rgba(0,0,0,0.6); z-index: 300; animation: fw-drop-in 0.15s ease; }
-        .fw-dropdown-header { padding: 8px 12px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 4px; }
-        .fw-dropdown-name { font-size: 13px; font-weight: 600; color: #F0EDE4; }
-        .fw-dropdown-sub { font-size: 11px; color: #3D5070; margin-top: 2px; }
-        .fw-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: #9BAAC4; font-family: 'Karla', sans-serif; font-size: 13px; cursor: pointer; background: transparent; border: none; width: 100%; text-align: left; transition: 0.15s; }
-        .fw-dropdown-item:hover { background: rgba(255,255,255,0.04); color: #F0EDE4; }
-        .fw-dropdown-item.danger:hover { color: #F87171; background: rgba(248,113,113,0.08); }
-        .fw-dropdown-sep { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0; }
+/* ══════════════════════════════════════════════════════════
+   PROPS
+══════════════════════════════════════════════════════════ */
+interface HeaderProps {
+  activeView:          AppView;
+  onNavigate:          (view: AppView) => void;
+  score:               number;
+  scoreLevel:          string;
+  userName?:           string;
+  onLock?:             () => void;
+  onExportExpenses?:   () => void;
+  onExportInvestments?:() => void;
+  onExportNetWorth?:   () => void;
+}
 
-        /* ─── MOBILE SCORE (header, compact) ───────────────── */
-        .fw-score-mobile { display: none; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); margin-left: auto; }
-        .fw-score-mobile-num { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 700; line-height: 1; }
-        .fw-score-mobile-lbl { font-size: 9px; color: #3D5070; letter-spacing: 0.1em; text-transform: uppercase; }
+/* ══════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════ */
+export const Header: React.FC<HeaderProps> = ({
+  activeView, onNavigate, score, scoreLevel,
+  userName, onLock, onExportExpenses, onExportInvestments, onExportNetWorth,
+}) => {
+  const { theme, toggleTheme } = useTheme();
+  const scoreColor = SCORE_COLOR[scoreLevel] ?? 'var(--text-3)';
 
-        /* ─── MOBILE BOTTOM BAR ─────────────────────────────── */
-        .fw-bottom-bar {
-          display: none; position: fixed; bottom: 0; left: 0; right: 0;
-          height: 64px; z-index: 200;
-          background: rgba(7,14,28,0.97);
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border-top: 1px solid rgba(201,168,76,0.1);
-          box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
-        }
-        .fw-bottom-bar-inner { display: flex; align-items: center; justify-content: space-around; height: 100%; max-width: 500px; margin: 0 auto; padding: 0 8px; }
-        .fw-tab-btn {
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 3px; flex: 1; height: 100%; background: transparent; border: none;
-          color: #3D5070; font-family: 'Karla', sans-serif;
-          cursor: pointer; transition: color 0.2s; position: relative;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .fw-tab-btn.active, .fw-tab-btn.more-active { color: #E2C47A; }
-        .fw-tab-icon { font-size: 20px; line-height: 1; transition: transform 0.15s; }
-        .fw-tab-btn:active .fw-tab-icon { transform: scale(0.85); }
-        .fw-tab-label { font-size: 10px; font-weight: 500; }
-        .fw-tab-pip {
-          position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
-          width: 20px; height: 2.5px; border-radius: 2px;
-          background: linear-gradient(90deg, #C9A84C, #E2C47A);
-          opacity: 0; transition: opacity 0.2s;
-        }
-        .fw-tab-btn.active .fw-tab-pip, .fw-tab-btn.more-active .fw-tab-pip { opacity: 1; }
+  const [collapsed,   setCollapsed]   = useState(false);
+  const [mobileSide,  setMobileSide]  = useState(false);
+  const [moreOpen,    setMoreOpen]    = useState(false);
+  const [scrolled,    setScrolled]    = useState(false);
+  const [userMenu,    setUserMenu]    = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-        /* ─── DRAWER OVERLAY ────────────────────────────────── */
-        .fw-overlay {
-          display: none; position: fixed; inset: 0; z-index: 350;
-          background: rgba(0,0,0,0);
-          transition: background 0.3s;
-        }
-        .fw-overlay.open { display: block; background: rgba(0,0,0,0.7); }
+  // const moreActive = MORE_ITEMS.some(n => n.id === activeView);
+  const circLen = 81.7; // 2π × 13
 
-        /* ─── MORE DRAWER ───────────────────────────────────── */
-        .fw-drawer {
-          position: fixed; bottom: 0; left: 0; right: 0; z-index: 400;
-          background: #0C1A2E;
-          border: 1px solid rgba(201,168,76,0.18);
-          border-bottom: none;
-          border-radius: 22px 22px 0 0;
-          transform: translateY(100%);
-          transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-          box-shadow: 0 -24px 64px rgba(0,0,0,0.7);
-          padding-bottom: env(safe-area-inset-bottom, 0px);
-        }
-        .fw-drawer.open { transform: translateY(0); }
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
+  }, []);
 
-        .fw-drawer-handle { display: flex; justify-content: center; padding: 14px 0 6px; }
-        .fw-drawer-handle-bar { width: 38px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); }
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setUserMenu(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
 
-        .fw-drawer-head { padding: 4px 20px 16px; display: flex; align-items: center; justify-content: space-between; }
-        .fw-drawer-head-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: #F0EDE4; }
-        .fw-drawer-head-sub { font-size: 11px; color: #3D5070; margin-top: 2px; }
-        .fw-drawer-close {
-          width: 32px; height: 32px; border-radius: 50%;
-          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07);
-          color: #5A6B8A; font-size: 14px;
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer;
-        }
+  useEffect(() => {
+    document.body.style.overflow = (mobileSide || moreOpen) ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileSide, moreOpen]);
 
-        .fw-drawer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px 16px; }
+  const go = (id: AppView) => {
+    onNavigate(id);
+    setMobileSide(false);
+    setMoreOpen(false);
+  };
 
-        .fw-drawer-item {
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 8px; padding: 18px 8px 16px;
-          background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 16px; cursor: pointer;
-          transition: background 0.15s, border-color 0.15s, transform 0.15s;
-          -webkit-tap-highlight-color: transparent;
-          opacity: 0; animation: none;
-        }
-        .fw-drawer.open .fw-drawer-item { animation: fw-item-pop 0.3s ease both; }
-        .fw-drawer.open .fw-drawer-item:nth-child(1) { animation-delay: 0.05s; }
-        .fw-drawer.open .fw-drawer-item:nth-child(2) { animation-delay: 0.09s; }
-        .fw-drawer.open .fw-drawer-item:nth-child(3) { animation-delay: 0.12s; }
-        .fw-drawer.open .fw-drawer-item:nth-child(4) { animation-delay: 0.15s; }
-        .fw-drawer.open .fw-drawer-item:nth-child(5) { animation-delay: 0.18s; }
-        .fw-drawer-item:active { transform: scale(0.93); }
-        .fw-drawer-item.active { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.3); }
-        .fw-drawer-icon { color:#9BAAC4;font-size: 24px; line-height: 1; }
-        .fw-drawer-label { font-family: 'Karla', sans-serif; font-size: 12px; font-weight: 500; color: #9BAAC4; text-align: center; }
-        .fw-drawer-item.active .fw-drawer-label { color: #E2C47A; font-weight: 600; }
+  /* Score ring helper */
+  const scoreRing = (size: number) => {
+    const r = size * 0.36;
+    const fill = (score / 100) * circLen;
+    return (
+      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border-s)" strokeWidth={size * 0.088} />
+          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={scoreColor} strokeWidth={size * 0.088}
+            strokeLinecap="round"
+            style={{ strokeDasharray: `${fill} ${circLen}`, filter: `drop-shadow(0 0 ${size*0.1}px ${scoreColor}80)`, transition: 'stroke-dasharray .8s ease' }} />
+        </svg>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.25, fontWeight: 700, color: scoreColor }}>
+          {score}
+        </div>
+      </div>
+    );
+  };
 
-        .fw-drawer-footer { display: flex; gap: 10px; padding: 4px 16px 20px; }
-        .fw-drawer-footer-btn {
-          flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-          padding: 12px 8px; border-radius: 14px;
-          font-family: 'Karla', sans-serif; font-size: 13px; font-weight: 600;
-          cursor: pointer; transition: 0.15s; border: 1px solid;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .fw-drawer-footer-btn.export { background: rgba(201,168,76,0.08); border-color: rgba(201,168,76,0.2); color: #C9A84C; }
-        .fw-drawer-footer-btn.lock   { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.15); color: #F87171; }
-        .fw-drawer-footer-btn:active { opacity: 0.75; transform: scale(0.97); }
+  const mainItems  = NAV_ITEMS.filter(n => n.group === 'main');
+  const planItems  = NAV_ITEMS.filter(n => n.group === 'plan');
+  const intelItems = NAV_ITEMS.filter(n => n.group === 'intel');
 
-        /* ─── RESPONSIVE ────────────────────────────────────── */
-        @media (max-width: 1080px) { .fw-nav-btn { padding: 6px 10px; font-size: 12.5px; } }
-        @media (max-width: 900px) {
-          .fw-nav-wrap  { display: none; }
-          .fw-divider   { display: none; }
-          .fw-score-chip { display: none; }
-          .fw-user-wrap { display: none; }
-          .fw-logo-tagline { display: none; }
-          .fw-score-mobile { display: flex; }
-          .fw-bottom-bar { display: block; }
-          body { padding-bottom: 64px; }
-          .fw-header-inner { padding: 0 16px; }
-        }
-        @media (max-width: 480px) {
-          .fw-header-inner { padding: 0 12px; }
-          .fw-logo-name { font-size: 17px; }
-          .fw-score-mobile-num { font-size: 15px; }
-        }
+  return (
+    <>
+      {/* ── MOBILE SIDEBAR BACKDROP ─────────────────────────── */}
+      <div
+        className={`fw-sb-back${mobileSide ? ' fw-sb-back--open' : ''}`}
+        onClick={() => setMobileSide(false)}
+      />
 
-        /* ─── KEYFRAMES ─────────────────────────────────────── */
-        @keyframes fw-drop-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fw-item-pop { from { opacity: 0; transform: translateY(14px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-      `}</style>
+      {/* ══════════ SIDEBAR ══════════════════════════════════ */}
+      <aside className={[
+        'fw-sidebar',
+        collapsed  ? 'collapsed'    : '',
+        mobileSide ? 'mobile-open'  : '',
+      ].filter(Boolean).join(' ')}>
 
-        {/* ── TOP HEADER ─────────────────────────────────────── */}
-        <header className={`fw-header${scrolled ? ' scrolled' : ''}`}>
-          <div className="fw-header-bg" />
-          <div className="fw-header-inner">
-
-            {/* Logo */}
-            <a href="#" className="fw-logo" onClick={(e) => { e.preventDefault(); onNavigate('advisor'); }}>
-              <div className="fw-logo-mark"><span className="fw-logo-symbol">Ƒ</span></div>
-              <div className="fw-logo-text">
-                <span className="fw-logo-name">FinWise</span>
-                <span className="fw-logo-tagline">Your Money, Mastered</span>
-              </div>
-            </a>
-
-            {/* Desktop scrollable nav with fade edges */}
-            <div className="fw-nav-wrap">
-              <nav className="fw-nav">
-                {ALL_NAV.map((item) => (
-                    <button
-                        key={item.id}
-                        className={`fw-nav-btn${activeView === item.id ? ' active' : ''}`}
-                        onClick={() => onNavigate(item.id)}
-                    >
-                      <span className="fw-nav-icon">{item.icon}</span>
-                      {item.label}
-                      {item.id === 'chat' && <span className="fw-ai-badge">AI</span>}
-                      <span className="fw-nav-pip" />
-                    </button>
-                ))}
-              </nav>
+        {/* Logo row */}
+        <div className="fw-sidebar-hd fw-sidebar-hd-root">
+          <button className="fw-logo-btn" onClick={() => go('dashboard')}>
+            <div className="fw-logo-mark">
+              <span className="fw-logo-sym">Ƒ</span>
             </div>
+            <div className="fw-reveal fw-logo-text">
+              <div className="fw-logo-name">FinWise</div>
+              <div className="fw-logo-tag">YOUR MONEY, MASTERED</div>
+            </div>
+          </button>
+          <button className="fw-collapse-btn" onClick={() => {
+            if (mobileSide) setMobileSide(false);
+            else setCollapsed(c => !c);
+          }}>
+            <span className="fw-collapse-icon">{mobileSide ? '✕' : (collapsed ? '›' : '‹')}</span>
+          </button>
+        </div>
 
-            <div className="fw-divider" />
+        {/* Nav groups */}
+        <div className="fw-sidebar-scroll">
+          {[
+            { title: 'Main',         items: mainItems  },
+            { title: 'Planning',     items: planItems  },
+            { title: 'Intelligence', items: intelItems },
+          ].map(grp => (
+            <div key={grp.title} style={{ padding: '0 10px 4px' }}>
+              <div className="fw-sec-lbl fw-reveal">{grp.title}</div>
+              {grp.items.map(item => {
+                const isAct = activeView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    className={`fw-navbtn${isAct ? ' fw-navbtn--active' : ''}`}
+                    onClick={() => go(item.id)}
+                    title={item.label}
+                  >
+                    {isAct && <span className="fw-navbtn-pip" />}
+                    <span className="fw-navbtn-icon">{item.icon}</span>
+                    <span className="fw-reveal fw-navbtn-label">{item.label}</span>
+                    {item.id === 'chat' && (
+                      <span className="fw-reveal fw-ai-chip">AI</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
 
-            {/* Desktop score chip */}
-            <div className="fw-score-chip">
-              <div className="fw-score-ring">
-                <svg width="30" height="30" viewBox="0 0 30 30">
-                  <circle className="fw-score-ring-track" cx="15" cy="15" r="11" />
-                  <circle className="fw-score-ring-fill" cx="15" cy="15" r="11" stroke={scoreColor}
-                          style={{ strokeDasharray: `${(score / 100) * 69.1} 69.1`, filter: `drop-shadow(0 0 3px ${scoreColor})` }}
-                  />
-                </svg>
-                <div className="fw-score-ring-val" style={{ color: scoreColor }}>{score}</div>
-              </div>
-              <div>
-                <div className="fw-score-num" style={{ color: scoreColor }}>{score}</div>
-                <div className="fw-score-lbl">Health Score</div>
-              </div>
-              <span className="fw-score-level" style={{ color: scoreColor, background: `${scoreColor}18`, border: `1px solid ${scoreColor}30` }}>
+        {/* Footer */}
+        <div className="fw-sidebar-footer">
+          {/* Score pill */}
+          <div className="fw-score-pill">
+            {scoreRing(36)}
+            <div className="fw-reveal fw-score-info">
+              <div className="fw-score-num" style={{ color: scoreColor }}>{score}</div>
+              <div className="fw-score-sub">Financial Health</div>
+            </div>
+            <span className="fw-reveal fw-score-badge" style={{ color: scoreColor, background: `${scoreColor}18`, border: `1px solid ${scoreColor}28` }}>
               {scoreLevel}
             </span>
+          </div>
+          {/* Theme toggle */}
+          <button className="fw-theme-btn" onClick={toggleTheme}>
+            <span className="fw-theme-emoji">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            <span className="fw-reveal fw-theme-label">{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span>
+            <div className={`fw-reveal fw-track${theme === 'light' ? ' fw-track--on' : ''}`}>
+              <div className="fw-thumb" />
             </div>
+          </button>
+        </div>
+      </aside>
 
-            {/* Desktop user menu */}
-            <div className="fw-user-wrap" ref={menuRef}>
-              <button className="fw-user-btn" onClick={() => setMenuOpen((o) => !o)}>
-                <div className="fw-user-avatar">{userName ? userName[0].toUpperCase() : 'U'}</div>
-                <span className="fw-caret">▾</span>
-              </button>
-              {menuOpen && (
-                  <div className="fw-dropdown" onClick={() => setMenuOpen(false)}>
-                    {userName && (
-                        <div className="fw-dropdown-header">
-                          <div className="fw-dropdown-name">{userName}</div>
-                          <div className="fw-dropdown-sub">FinWise Profile</div>
-                        </div>
-                    )}
-                    <button className="fw-dropdown-item" onClick={onExportExpenses}>↓ Export Expenses</button>
-                    <button className="fw-dropdown-item" onClick={onExportInvestments}>↓ Export Investments</button>
-                    <button className="fw-dropdown-item" onClick={onExportNetWorth}>↓ Export Net Worth</button>
-                    <div className="fw-dropdown-sep" />
-                    <button className="fw-dropdown-item danger" onClick={onLock}>🔒 Lock App</button>
-                  </div>
-              )}
+      {/* ══════════ TOPBAR ═══════════════════════════════════ */}
+      <div className={`fw-topbar${scrolled ? ' scrolled' : ''}`}>
+        <div className="fw-topbar-inner">
+
+          {/* Hamburger */}
+          <button className="fw-ham" onClick={() => setMobileSide(o => !o)} aria-label="Toggle menu">
+            <span /><span /><span />
+          </button>
+
+          {/* Page title */}
+          <span className="fw-page-title">
+            {NAV_ITEMS.find(n => n.id === activeView)?.label ?? 'FinWise'}
+          </span>
+
+          <div style={{ flex: 1 }} />
+
+          {/* Theme btn (mobile) */}
+          <button className="fw-tbar-theme-btn" onClick={toggleTheme} title="Toggle theme">
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
+          {/* Score ring (topbar) */}
+          <div className="fw-tbar-score" style={{ color: scoreColor }}>
+            {scoreRing(24)}
+            <div className="fw-tbar-score-text">
+              <div className="fw-tbar-score-num">{score}</div>
+              <div className="fw-tbar-score-lbl">Score</div>
             </div>
+          </div>
 
-            {/* Mobile compact score (visible only on mobile) */}
-            <div className="fw-score-mobile">
-              <svg width="22" height="22" viewBox="0 0 22 22" style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-                <circle cx="11" cy="11" r="8" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2.5" />
-                <circle cx="11" cy="11" r="8" fill="none" stroke={scoreColor} strokeWidth="2.5"
-                        strokeLinecap="round"
-                        style={{ strokeDasharray: `${(score / 100) * 50.3} 50.3`, filter: `drop-shadow(0 0 3px ${scoreColor})` }}
-                />
-              </svg>
-              <div>
-                <div className="fw-score-mobile-num" style={{ color: scoreColor }}>{score}</div>
-                <div className="fw-score-mobile-lbl">Score</div>
+          {/* User menu */}
+          <div style={{ position: 'relative' }} ref={menuRef}>
+            <button className="fw-user-btn" onClick={() => setUserMenu(o => !o)}>
+              <div className="fw-avatar">
+                {userName ? userName[0].toUpperCase() : 'U'}
               </div>
-            </div>
-
-          </div>
-        </header>
-
-        {/* ── MOBILE BOTTOM TAB BAR ───────────────────────────── */}
-        <div className="fw-bottom-bar">
-          <div className="fw-bottom-bar-inner">
-            {PRIMARY_NAV.map((item) => (
-                <button
-                    key={item.id}
-                    className={`fw-tab-btn${activeView === item.id ? ' active' : ''}`}
-                    onClick={() => onNavigate(item.id)}
-                >
-                  <span className="fw-tab-icon">{item.icon}</span>
-                  <span className="fw-tab-label">{item.label}</span>
-                  <span className="fw-tab-pip" />
-                </button>
-            ))}
-
-            {/* More → opens drawer */}
-            <button
-                className={`fw-tab-btn${moreIsActive ? ' more-active' : ''}`}
-                onClick={() => setDrawerOpen(true)}
-            >
-            <span className="fw-tab-icon">
-              {moreIsActive
-                  ? MORE_NAV.find((n) => n.id === activeView)?.icon ?? '☰'
-                  : '☰'}
-            </span>
-              <span className="fw-tab-label">More</span>
-              <span className="fw-tab-pip" />
+              {userName && <span className="fw-user-name">{userName}</span>}
+              <span className="fw-user-caret">▾</span>
             </button>
+
+            {userMenu && (
+              <div className="fw-dropdown" onClick={() => setUserMenu(false)}>
+                {userName && (
+                  <div className="fw-dropdown-head">
+                    <div className="fw-dropdown-name">{userName}</div>
+                    <div className="fw-dropdown-sub">FinWise Profile</div>
+                  </div>
+                )}
+                <button className="fw-dropdown-item" onClick={onExportExpenses}>⬇ Export Expenses</button>
+                <button className="fw-dropdown-item" onClick={onExportInvestments}>⬇ Export Investments</button>
+                <button className="fw-dropdown-item" onClick={onExportNetWorth}>⬇ Export Net Worth</button>
+                <div className="fw-dropdown-sep" />
+                <button className="fw-dropdown-item fw-dropdown-item--danger" onClick={onLock}>🔒 Lock App</button>
+              </div>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* ── DRAWER BACKDROP ─────────────────────────────────── */}
-        <div className={`fw-overlay${drawerOpen ? ' open' : ''}`} onClick={() => setDrawerOpen(false)} />
-
-        {/* ── MORE SLIDE-UP DRAWER ────────────────────────────── */}
-        <div className={`fw-drawer${drawerOpen ? ' open' : ''}`}>
-          <div className="fw-drawer-handle">
-            <div className="fw-drawer-handle-bar" />
-          </div>
-
-          <div className="fw-drawer-head">
-            <div>
-              <div className="fw-drawer-head-title">More pages</div>
-              <div className="fw-drawer-head-sub">Tap to navigate</div>
-            </div>
-            <button className="fw-drawer-close" onClick={() => setDrawerOpen(false)}>✕</button>
-          </div>
-
-          <div className="fw-drawer-grid">
-            {MORE_NAV.map((item) => (
-                <button
-                    key={item.id}
-                    className={`fw-drawer-item${activeView === item.id ? ' active' : ''}`}
-                    onClick={() => handleDrawerNav(item.id)}
-                >
-                  <span className="fw-drawer-icon">{item.icon}</span>
-                  <span className="fw-drawer-label">{item.label}</span>
-                </button>
-            ))}
-          </div>
-
-          <div className="fw-drawer-footer">
-            <button
-                className="fw-drawer-footer-btn export"
-                onClick={() => { onExportExpenses?.(); setDrawerOpen(false); }}
-            >
-              ↓ Export CSV
-            </button>
-            <button
-                className="fw-drawer-footer-btn lock"
-                onClick={() => { onLock?.(); setDrawerOpen(false); }}
-            >
-              🔒 Lock App
-            </button>
-          </div>
+      {/* ══════════ MOBILE BOTTOM NAV ════════════════════════ */}
+      <nav className="fw-bottom-nav">
+        <div className="fw-bottom-nav-inner">
+          {PRIMARY_MOBILE.map(id => {
+            const item = NAV_ITEMS.find(n => n.id === id)!;
+            return (
+              <button
+                key={id}
+                className={`fw-tab${activeView === id ? ' active' : ''}`}
+                onClick={() => go(id)}
+              >
+                <div className="fw-tab-bubble">{item.icon}</div>
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+          {/*<button*/}
+          {/*  className={`fw-tab${moreActive ? ' active' : ''}`}*/}
+          {/*  onClick={() => setMoreOpen(true)}*/}
+          {/*>*/}
+          {/*  <div className="fw-tab-bubble">*/}
+          {/*    {moreActive ? MORE_ITEMS.find(n => n.id === activeView)?.icon ?? '⋯' : '⋯'}*/}
+          {/*  </div>*/}
+          {/*  <span>More</span>*/}
+          {/*</button>*/}
         </div>
+      </nav>
 
-      </>
+      {/* ══════════ MORE SHEET ═══════════════════════════════ */}
+      {/*<div className={`fw-backdrop${moreOpen ? ' open' : ''}`} onClick={() => setMoreOpen(false)} />*/}
+      {/*<div className={`fw-sheet${moreOpen ? ' open' : ''}`}>*/}
+      {/*  <div className="fw-sheet-handle"><div className="fw-sheet-bar" /></div>*/}
+      {/*  <div className="fw-sheet-header">*/}
+      {/*    <span className="fw-sheet-title">More</span>*/}
+      {/*    <button className="fw-sheet-close" onClick={() => setMoreOpen(false)}>✕</button>*/}
+      {/*  </div>*/}
+      {/*  <div className="fw-sheet-grid">*/}
+      {/*    {MORE_ITEMS.map(item => (*/}
+      {/*      <button*/}
+      {/*        key={item.id}*/}
+      {/*        className={`fw-sheet-item${activeView === item.id ? ' active' : ''}`}*/}
+      {/*        onClick={() => go(item.id)}*/}
+      {/*      >*/}
+      {/*        <span className="fw-sheet-emoji">{item.icon}</span>*/}
+      {/*        <span className="fw-sheet-lbl">{item.label}</span>*/}
+      {/*      </button>*/}
+      {/*    ))}*/}
+      {/*  </div>*/}
+      {/*  <div className="fw-sheet-actions">*/}
+      {/*    <button className="fw-sheet-act fw-sheet-act-gold" onClick={() => { onExportExpenses?.(); setMoreOpen(false); }}>⬇ Export Data</button>*/}
+      {/*    <button className="fw-sheet-act fw-sheet-act-red"  onClick={() => { onLock?.(); setMoreOpen(false); }}>🔒 Lock App</button>*/}
+      {/*  </div>*/}
+      {/*</div>*/}
+
+      {/* ══════════ SCOPED CSS ═══════════════════════════════ */}
+      <style>{`
+        /* Mobile backdrop */
+        .fw-sb-back { position:fixed; inset:0; z-index:190; background:rgba(0,0,0,0); transition:background .25s; pointer-events:none; }
+        .fw-sb-back--open { background:rgba(0,0,0,.52); pointer-events:auto; }
+
+        /* Sidebar header */
+        .fw-sidebar-hd-root { display:flex; align-items:center; justify-content:space-between; padding:20px 18px 16px; flex-shrink:0; border-bottom:1px solid var(--sidebar-border); margin-bottom:6px; gap:8px; }
+
+        /* Logo */
+        .fw-logo-btn { display:flex; align-items:center; gap:10px; background:transparent; border:none; cursor:pointer; min-width:0; padding:0; }
+        .fw-logo-mark { width:34px; height:34px; border-radius:10px; flex-shrink:0; background:linear-gradient(145deg,var(--gold),var(--gold-l)); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px var(--gold-glow),inset 0 1px 0 rgba(255,255,255,.25); transition:transform .2s,box-shadow .2s; }
+        .fw-logo-btn:hover .fw-logo-mark { transform:translateY(-1px) rotate(-4deg); box-shadow:0 5px 18px var(--gold-glow); }
+        .fw-logo-sym  { font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:800; color:#0A1628; line-height:1; }
+        .fw-logo-text { min-width:0; }
+        .fw-logo-name { font-family:'Cormorant Garamond',serif; font-size:17px; font-weight:700; color:var(--text-1); white-space:nowrap; line-height:1.1; }
+        .fw-logo-tag  { font-size:8.5px; font-weight:700; color:var(--text-3); letter-spacing:.13em; text-transform:uppercase; }
+
+        /* Collapse btn */
+        .fw-collapse-btn { width:28px; height:28px; border-radius:8px; flex-shrink:0; background:var(--sidebar-hover); border:1px solid var(--border); color:var(--text-3); font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; }
+        .fw-collapse-btn:hover { color:var(--gold); border-color:var(--border-acc); background:var(--gold-dim); }
+        .fw-collapse-icon { display:inline-block; transition:none; }
+
+        /* Sidebar scroll */
+        .fw-sidebar-scroll { flex:1; overflow-y:auto; overflow-x:hidden; scrollbar-width:none; padding-bottom:8px; }
+        .fw-sidebar-scroll::-webkit-scrollbar { display:none; }
+
+        /* Section label */
+        .fw-sec-lbl { font-size:9.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--text-3); padding:10px 6px 5px; overflow:hidden; white-space:nowrap; transition:opacity .15s; }
+
+        /* Nav button */
+        .fw-navbtn { display:flex; align-items:center; gap:10px; padding:10px 12px; margin:1px 0; border-radius:10px; border:1px solid transparent; background:transparent; cursor:pointer; width:100%; text-align:left; position:relative; overflow:hidden; transition:all .15s; -webkit-tap-highlight-color:transparent; }
+        .fw-navbtn:hover { background:var(--sidebar-hover); border-color:var(--border); }
+        .fw-navbtn--active { background:var(--sidebar-active); border-color:var(--sidebar-ab); }
+        .fw-navbtn-pip { position:absolute; left:0; top:22%; bottom:22%; width:3px; border-radius:0 3px 3px 0; background:linear-gradient(to bottom,var(--gold),var(--gold-l)); }
+        .fw-navbtn-icon  { font-size:17px; width:20px; text-align:center; flex-shrink:0; transition:transform .15s; }
+        .fw-navbtn:hover .fw-navbtn-icon { transform:scale(1.12); }
+        .fw-navbtn-label { font-size:13.5px; font-weight:500; color:var(--text-2); white-space:nowrap; transition:color .15s; }
+        .fw-navbtn--active .fw-navbtn-label { color:var(--gold); font-weight:600; }
+        .fw-navbtn--active .fw-navbtn-icon { filter:drop-shadow(0 0 3px var(--gold-glow)); }
+        .fw-ai-chip { margin-left:auto; padding:1px 6px; border-radius:4px; font-size:8px; font-weight:700; letter-spacing:.06em; background:var(--gold-dim); color:var(--gold); border:1px solid var(--border-acc); flex-shrink:0; }
+
+        /* Sidebar footer */
+        .fw-sidebar-footer { padding:10px; border-top:1px solid var(--sidebar-border); flex-shrink:0; display:flex; flex-direction:column; gap:6px; }
+        .fw-score-pill { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; background:var(--bg-surface); border:1px solid var(--border); overflow:hidden; }
+        .fw-score-info { flex:1; min-width:0; }
+        .fw-score-num  { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; line-height:1; }
+        .fw-score-sub  { font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); margin-top:1px; }
+        .fw-score-badge { font-size:9px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; padding:3px 8px; border-radius:20px; flex-shrink:0; white-space:nowrap; }
+        .fw-theme-btn  { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; background:var(--bg-surface); border:1px solid var(--border); cursor:pointer; width:100%; transition:border-color .15s; }
+        .fw-theme-btn:hover { border-color:var(--border-acc); }
+        .fw-theme-emoji { font-size:15px; flex-shrink:0; }
+        .fw-theme-label { font-size:12px; font-weight:500; color:var(--text-2); white-space:nowrap; flex:1; text-align:left; }
+        .fw-track { width:34px; height:19px; border-radius:10px; background:var(--border-s); position:relative; transition:background .2s; margin-left:auto; flex-shrink:0; }
+        .fw-track--on { background:var(--gold); }
+        .fw-thumb { position:absolute; top:2.5px; left:2.5px; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.25); transition:left .2s cubic-bezier(.4,0,.2,1); }
+        .fw-track--on .fw-thumb { left:calc(100% - 16.5px); }
+
+        /* Topbar */
+        .fw-ham { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; width:36px; height:36px; border-radius:9px; background:var(--bg-surface); border:1px solid var(--border); cursor:pointer; transition:all .15s; flex-shrink:0; }
+        .fw-ham span { display:block; width:16px; height:2px; border-radius:1px; background:var(--text-2); transition:background .15s; }
+        .fw-ham:hover span { background:var(--gold); }
+        .fw-ham:hover { border-color:var(--border-acc); }
+        .fw-page-title { font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:600; color:var(--text-1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .fw-tbar-theme-btn { width:34px; height:34px; border-radius:9px; background:var(--bg-surface); border:1px solid var(--border); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:border-color .15s; }
+        .fw-tbar-theme-btn:hover { border-color:var(--border-acc); }
+        .fw-tbar-score { display:flex; align-items:center; gap:7px; padding:5px 11px; border-radius:30px; border:1px solid var(--border); background:var(--bg-surface); flex-shrink:0; }
+        .fw-tbar-score-text { display:flex; flex-direction:column; }
+        .fw-tbar-score-num { font-family:'Cormorant Garamond',serif; font-size:16px; font-weight:700; line-height:1; }
+        .fw-tbar-score-lbl { font-size:8.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-3); }
+
+        /* User */
+        .fw-user-btn { display:flex; align-items:center; gap:7px; padding:4px 10px; border-radius:9px; background:transparent; border:1px solid var(--border); color:var(--text-2); cursor:pointer; transition:all .15s; flex-shrink:0; }
+        .fw-user-btn:hover { background:var(--bg-surface); border-color:var(--border-s); }
+        .fw-avatar { width:26px; height:26px; border-radius:7px; background:var(--gold-dim); border:1px solid var(--border-acc); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--gold); font-family:'Cormorant Garamond',serif; }
+        .fw-user-name { font-size:13px; font-weight:500; max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .fw-user-caret { font-size:9px; color:var(--text-3); }
+
+        /* Dropdown */
+        .fw-dropdown { position:absolute; top:calc(100% + 8px); right:0; background:var(--bg-elevated,var(--bg-card)); border:1px solid var(--border); border-radius:14px; padding:6px; min-width:200px; box-shadow:var(--shadow-lg); z-index:400; animation:popIn .15s ease; }
+        .fw-dropdown-head  { padding:8px 12px 12px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+        .fw-dropdown-name  { font-size:13px; font-weight:600; color:var(--text-1); }
+        .fw-dropdown-sub   { font-size:11px; color:var(--text-3); margin-top:2px; }
+        .fw-dropdown-item  { display:flex; align-items:center; gap:10px; width:100%; padding:9px 12px; border-radius:8px; background:transparent; border:none; color:var(--text-2); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition:all .12s; text-align:left; }
+        .fw-dropdown-item:hover { background:var(--bg-surface); color:var(--text-1); }
+        .fw-dropdown-item--danger:hover { color:var(--red); background:var(--red-dim); }
+        .fw-dropdown-sep   { height:1px; background:var(--border); margin:4px 0; }
+      `}</style>
+    </>
   );
 };

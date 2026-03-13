@@ -92,7 +92,7 @@ export const Bills: React.FC<BillsProps> = ({
           <div style={S.cardTitle}>Add Bill</div>
           {submitted && <span style={S.successTag}>✓ Bill Added!</span>}
         </div>
-        <div className="form-grid">
+        <div className="bills-form-grid">
           <div style={S.field}>
             <label style={S.label}>Bill Name</label>
             <input style={S.input} placeholder="e.g. KPLC Electricity" value={name} onChange={(e) => setName(e.target.value)} />
@@ -138,7 +138,7 @@ export const Bills: React.FC<BillsProps> = ({
       <div style={S.listCard}>
         <div style={S.listHeader}>
           <div style={S.cardTitle}>All Bills</div>
-          <div style={S.filterRow}>
+          <div style={S.filterRow} className="filter-tabs-scroll">
             {(['all', 'upcoming', 'paid', 'overdue'] as const).map((f) => (
               <button key={f} style={{ ...S.filterBtn, ...(filter === f ? S.filterActive : {}) }} onClick={() => setFilter(f)}>
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -159,7 +159,7 @@ export const Bills: React.FC<BillsProps> = ({
               const statusColor = isPaid ? '#3DD68C' : isOverdue ? '#F87171' : daysLeft <= 3 ? '#FBBF24' : '#9BAAC4';
 
               return (
-                <div key={bill.id} style={{ ...S.billItem, opacity: isPaid ? 0.6 : 1 }}>
+                <div key={bill.id} style={{ ...S.billItem, opacity: isPaid ? 0.6 : 1 }} className="bill-item-resp">
                   <div style={{ ...S.billIcon, background: `${meta.color}18` }}>{meta.icon}</div>
                   <div style={S.billInfo}>
                     <div style={{ ...S.billName, textDecoration: isPaid ? 'line-through' : 'none' }}>{bill.name}</div>

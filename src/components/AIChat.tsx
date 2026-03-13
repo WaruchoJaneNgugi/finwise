@@ -299,7 +299,7 @@ const DOT_BASE: React.CSSProperties = {
 };
 
 const S: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', flexDirection: 'column', gap: 14, height: 'calc(100vh - 160px)', minHeight: 520 },
+  container: { display: 'flex', flexDirection: 'column', gap: 14, height: 'calc(100dvh - 160px)', minHeight: 480 },
   chatHeader: { background: '#132040', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 14, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
   aiAvatar: { width: 42, height: 42, borderRadius: 11, background: 'linear-gradient(145deg, #C9A84C, #E8D08A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond, serif', fontSize: 21, fontWeight: 800, color: '#0A1628', flexShrink: 0 },
   aiName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 17, fontWeight: 600, color: '#E2C47A' },
@@ -325,7 +325,7 @@ const S: Record<string, React.CSSProperties> = {
   quickPrompts: { display: 'flex', flexWrap: 'wrap', gap: 7 },
   quickBtn: { padding: '6px 13px', background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.18)', borderRadius: 20, color: '#C9A84C', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
   inputArea: { display: 'flex', gap: 10, alignItems: 'flex-end' },
-  textarea: { flex: 1, background: '#132040', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 11, padding: '11px 15px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif', resize: 'none', lineHeight: 1.5 },
-  sendBtn: { width: 46, height: 46, borderRadius: 11, background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', fontSize: 21, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer', transition: '0.15s' },
+  textarea: { flex: 1, background: '#132040', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 11, padding: '12px 15px', color: '#F0EDE4', fontSize: 16, fontFamily: 'Karla, sans-serif', resize: 'none', lineHeight: 1.5, minHeight: 48 },
+  sendBtn: { width: 48, height: 48, borderRadius: 11, background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', fontSize: 21, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer', transition: '0.15s' },
   inputHint: { fontSize: 10, color: '#2A3B58', textAlign: 'center', marginTop: -6 },
 };

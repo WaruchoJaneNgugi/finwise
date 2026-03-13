@@ -110,7 +110,7 @@ export const InvestmentForm: React.FC<FormProps> = ({ onAdd }) => {
         <span style={S.avgReturn}>~{meta.avgReturn}% avg / yr</span>
       </div>
 
-      <div className="form-grid">
+      <div className="inv-form-grid">
         <div style={S.field}>
           <label style={S.label}>Investment Name</label>
           <input

@@ -54,7 +54,7 @@ export const NetWorth: React.FC<NetWorthProps> = ({ items, summary, onAdd, onRem
     <div style={S.container} className="animate-in">
 
       {/* Net Worth Hero */}
-      <div style={S.heroCard}>
+      <div style={S.heroCard} className="nw-hero-inner">
         <div style={S.heroLeft}>
           <div style={S.heroLabel}>Your Net Worth</div>
           <div style={{ ...S.heroAmount, color: netWorthColor }}>
@@ -208,11 +208,11 @@ export const NetWorth: React.FC<NetWorthProps> = ({ items, summary, onAdd, onRem
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
   cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4' },
-  heroCard: { background: 'linear-gradient(135deg, #0F1F3D 0%, #1A2E50 100%)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 16, padding: '28px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24 },
+  heroCard: { background: 'linear-gradient(135deg, #0F1F3D 0%, #1A2E50 100%)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 16, padding: '24px 26px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 24, flexWrap: 'wrap' },
   heroLeft: { flex: 1 },
   heroRight: { flexShrink: 0 },
   heroLabel: { fontSize: 12, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 },
-  heroAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 42, fontWeight: 700, lineHeight: 1 },
+  heroAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 700, lineHeight: 1 },
   heroSub: { fontSize: 13, color: '#5A6B8A', marginTop: 6, marginBottom: 20 },
   heroStats: { display: 'flex', gap: 24 },
   heroStat: { display: 'flex', gap: 10, alignItems: 'flex-start' },

@@ -88,7 +88,7 @@ const App: React.FC = () => {
       />
 
       <main className="main-content">
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{  margin: '0 auto' }}>
 
           {/* ── Advisor ─────────────────────────────────────────── */}
           {activeView === 'advisor' && (
