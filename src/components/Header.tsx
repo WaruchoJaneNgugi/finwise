@@ -1,46 +1,35 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { AppView } from '../types';
-
-/* ══════════════════════════════════════════════════════════
-   THEME CONTEXT
-══════════════════════════════════════════════════════════ */
-export type Theme = 'dark' | 'light';
-
-export const ThemeContext = React.createContext<{
-  theme: Theme;
-  toggleTheme: () => void;
-}>({ theme: 'dark', toggleTheme: () => {} });
-
-export const useTheme = () => React.useContext(ThemeContext);
+import {type Theme, ThemeContext, useTheme} from "../hooks/NavItems.ts";
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      const stored = localStorage.getItem('fw-theme');
-      if (stored === 'light' || stored === 'dark') return stored;
-      // Check system preference
-      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
+    const [theme, setTheme] = useState<Theme>(() => {
+        try {
+            const stored = localStorage.getItem('fw-theme');
+            if (stored === 'light' || stored === 'dark') return stored;
+            // Check system preference
+            return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        } catch {
+            return 'dark';
+        }
+    });
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    try {
-      localStorage.setItem('fw-theme', theme);
-    } catch {}
-  }, [theme]);
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        try {
+            localStorage.setItem('fw-theme', theme);
+        } catch { /* empty */ }
+    }, [theme]);
 
-  const toggleTheme = useCallback(() => {
-    setTheme(t => (t === 'dark' ? 'light' : 'dark'));
-  }, []);
+    const toggleTheme = useCallback(() => {
+        setTheme(t => (t === 'dark' ? 'light' : 'dark'));
+    }, []);
 
-  return (
-      <ThemeContext.Provider value={{ theme, toggleTheme }}>
-        {children}
-      </ThemeContext.Provider>
-  );
+    return (
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    );
 };
 
 /* ══════════════════════════════════════════════════════════
