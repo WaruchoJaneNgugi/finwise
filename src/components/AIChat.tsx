@@ -217,7 +217,7 @@ export const AIChat: React.FC<AIChatProps> = ({
         </div>
         {onNavigateToAlerts && (
           <button onClick={onNavigateToAlerts}
-            style={{ padding: '7px 14px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 8, color: '#F87171', fontSize: 12, fontFamily: 'Karla, sans-serif', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            style={{ padding: '7px 14px', background: 'var(--red-dim)', border: '1px solid var(--red-b)', borderRadius: 8, color: 'var(--red)', fontSize: 12, fontFamily: 'Karla, sans-serif', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
             🚨 SOS
           </button>
         )}
@@ -293,39 +293,39 @@ export const AIChat: React.FC<AIChatProps> = ({
 };
 
 const DOT_BASE: React.CSSProperties = {
-  width: 7, height: 7, borderRadius: '50%', background: '#5A6B8A',
+  width: 7, height: 7, borderRadius: '50%', background: 'var(--text-3)',
   display: 'inline-block', animationName: 'blink',
   animationDuration: '1.4s', animationTimingFunction: 'ease', animationIterationCount: 'infinite',
 };
 
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 14, height: 'calc(100dvh - 160px)', minHeight: 480 },
-  chatHeader: { background: '#132040', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 14, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  aiAvatar: { width: 42, height: 42, borderRadius: 11, background: 'linear-gradient(145deg, #C9A84C, #E8D08A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond, serif', fontSize: 21, fontWeight: 800, color: '#0A1628', flexShrink: 0 },
-  aiName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 17, fontWeight: 600, color: '#E2C47A' },
-  aiStatus: { fontSize: 11, color: '#5A6B8A', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 },
-  statusDot: { width: 6, height: 6, borderRadius: '50%', background: '#3DD68C', boxShadow: '0 0 6px rgba(61,214,140,0.6)', display: 'inline-block' },
+  chatHeader: { background: 'var(--bg-card)', border: '1px solid var(--border-acc)', borderRadius: 14, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  aiAvatar: { width: 42, height: 42, borderRadius: 11, background: 'linear-gradient(145deg, var(--gold), var(--gold-l))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond, serif', fontSize: 21, fontWeight: 800, color: '#0A1628', flexShrink: 0 },
+  aiName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 17, fontWeight: 600, color: 'var(--gold-l)' },
+  aiStatus: { fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 },
+  statusDot: { width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 6px var(--green-dim)', display: 'inline-block' },
   contextBadges: { display: 'flex', gap: 7, flexWrap: 'wrap', marginLeft: 'auto' },
-  badge: { fontSize: 11, color: '#5A6B8A', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', padding: '3px 9px', borderRadius: 20 },
-  messagesPane: { flex: 1, overflowY: 'auto', background: '#0D1A30', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 14, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 },
+  badge: { fontSize: 11, color: 'var(--text-3)', background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '3px 9px', borderRadius: 20 },
+  messagesPane: { flex: 1, overflowY: 'auto', background: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: 14, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 },
   msgRow: { display: 'flex', alignItems: 'flex-start', gap: 9 },
-  aiBubbleAvatar: { width: 28, height: 28, borderRadius: 7, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond, serif', fontSize: 13, fontWeight: 700, color: '#C9A84C', flexShrink: 0, marginTop: 2 },
+  aiBubbleAvatar: { width: 28, height: 28, borderRadius: 7, background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond, serif', fontSize: 13, fontWeight: 700, color: 'var(--gold)', flexShrink: 0, marginTop: 2 },
   bubble: { maxWidth: '76%', borderRadius: 13, padding: '11px 15px' },
-  aiBubble: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', color: '#D0CFCA', fontSize: 14, lineHeight: 1.65, borderTopLeftRadius: 4 },
-  userBubble: { background: 'linear-gradient(135deg, rgba(201,168,76,0.14), rgba(201,168,76,0.07))', border: '1px solid rgba(201,168,76,0.2)', color: '#F0EDE4', fontSize: 14, lineHeight: 1.65, borderTopRightRadius: 4 },
+  aiBubble: { background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-1)', fontSize: 14, lineHeight: 1.65, borderTopLeftRadius: 4 },
+  userBubble: { background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', color: 'var(--text-1)', fontSize: 14, lineHeight: 1.65, borderTopRightRadius: 4 },
   bubbleContent: { display: 'flex', flexDirection: 'column', gap: 2 },
-  bubbleTime: { fontSize: 10, color: '#3D5070', marginTop: 5, textAlign: 'right' },
+  bubbleTime: { fontSize: 10, color: 'var(--text-3)', marginTop: 5, textAlign: 'right' },
   bullet: { paddingLeft: 4, marginTop: 2 },
-  boldLine: { fontWeight: 600, color: '#F0EDE4', marginTop: 4 },
+  boldLine: { fontWeight: 600, color: 'var(--text-1)', marginTop: 4 },
   typingDots: { display: 'flex', gap: 5, padding: '3px 0', alignItems: 'center' },
   dot: { ...DOT_BASE },
-  errorMsg: { fontSize: 13, color: '#F87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)', padding: '9px 13px', borderRadius: 8 },
-  quickPromptsWrap: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '13px 16px' },
-  quickLabel: { fontSize: 10, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 9 },
+  errorMsg: { fontSize: 13, color: 'var(--red)', background: 'var(--red-dim)', border: '1px solid var(--red-b)', padding: '9px 13px', borderRadius: 8 },
+  quickPromptsWrap: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 16px' },
+  quickLabel: { fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 9 },
   quickPrompts: { display: 'flex', flexWrap: 'wrap', gap: 7 },
-  quickBtn: { padding: '6px 13px', background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.18)', borderRadius: 20, color: '#C9A84C', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
+  quickBtn: { padding: '6px 13px', background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', borderRadius: 20, color: 'var(--gold)', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
   inputArea: { display: 'flex', gap: 10, alignItems: 'flex-end' },
-  textarea: { flex: 1, background: '#132040', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 11, padding: '12px 15px', color: '#F0EDE4', fontSize: 16, fontFamily: 'Karla, sans-serif', resize: 'none', lineHeight: 1.5, minHeight: 48 },
-  sendBtn: { width: 48, height: 48, borderRadius: 11, background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', fontSize: 21, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer', transition: '0.15s' },
-  inputHint: { fontSize: 10, color: '#2A3B58', textAlign: 'center', marginTop: -6 },
+  textarea: { flex: 1, background: 'var(--bg-card)', border: '1px solid var(--border-acc)', borderRadius: 11, padding: '12px 15px', color: 'var(--text-1)', fontSize: 16, fontFamily: 'Karla, sans-serif', resize: 'none', lineHeight: 1.5, minHeight: 48 },
+  sendBtn: { width: 48, height: 48, borderRadius: 11, background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', fontSize: 21, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer', transition: '0.15s' },
+  inputHint: { fontSize: 10, color: 'var(--text-3)', textAlign: 'center', marginTop: -6 },
 };

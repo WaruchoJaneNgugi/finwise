@@ -17,10 +17,10 @@ export const InvestmentSummaryBar: React.FC<SummaryProps> = ({ summary, monthlyI
     ? Math.min(100, Math.round((summary.totalMonthly / monthlyIncome) * 100)) : 0;
 
   const stats = [
-    { label: 'Total Portfolio',   value: formatCurrency(summary.totalInvested, 'KES'), color: '#C9A84C', sub: `${summary.activeCount} active positions` },
-    { label: 'Added This Month',  value: formatCurrency(summary.totalMonthly, 'KES'),  color: '#3DD68C', sub: `${investPct}% of income` },
-    { label: 'Projected / Year',  value: formatCurrency(summary.projectedAnnualReturn, 'KES'), color: '#60A5FA', sub: 'weighted avg return' },
-    { label: 'Projected / Month', value: formatCurrency(projectedMonthly, 'KES'),      color: '#A78BFA', sub: 'passive income est.' },
+    { label: 'Total Portfolio',   value: formatCurrency(summary.totalInvested, 'KES'), color: 'var(--gold)', sub: `${summary.activeCount} active positions` },
+    { label: 'Added This Month',  value: formatCurrency(summary.totalMonthly, 'KES'),  color: 'var(--green)', sub: `${investPct}% of income` },
+    { label: 'Projected / Year',  value: formatCurrency(summary.projectedAnnualReturn, 'KES'), color: 'var(--blue)', sub: 'weighted avg return' },
+    { label: 'Projected / Month', value: formatCurrency(projectedMonthly, 'KES'), color: '#A78BFA', sub: 'passive income est.' },
   ];
 
   return (
@@ -85,10 +85,10 @@ export const InvestmentForm: React.FC<FormProps> = ({ onAdd }) => {
   return (
     <div style={S.formCard}>
       <style>{`
-        .inv-input:focus { border-color: rgba(201,168,76,0.5) !important; outline: none; }
-        .inv-select:focus { border-color: rgba(201,168,76,0.5) !important; outline: none; }
+        .inv-input:focus { border-color: var(--border-focus) !important; outline: none; }
+        .inv-select:focus { border-color: var(--border-focus) !important; outline: none; }
         .inv-add-btn { transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; }
-        .inv-add-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,168,76,0.4) !important; }
+        .inv-add-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 28px var(--gold-glow) !important; }
         .inv-add-btn:active:not(:disabled) { transform: translateY(0); }
       `}</style>
 
@@ -182,7 +182,7 @@ export const InvestmentForm: React.FC<FormProps> = ({ onAdd }) => {
             type="checkbox"
             checked={recurring}
             onChange={(e) => setRecurring(e.target.checked)}
-            style={{ accentColor: '#C9A84C' }}
+            style={{ accentColor: 'var(--gold)' }}
           />
           <span>Monthly recurring contribution</span>
         </label>
@@ -225,19 +225,19 @@ export const InvestmentList: React.FC<ListProps> = ({ investments, onRemove, onU
   const presentCategories = [...new Set(sorted.map((i) => i.category))];
 
   const STATUS_STYLES: Record<InvestmentStatus, { color: string; bg: string; label: string }> = {
-    active:    { color: '#3DD68C', bg: 'rgba(61,214,140,0.12)',  label: 'Active' },
-    matured:   { color: '#C9A84C', bg: 'rgba(201,168,76,0.12)', label: 'Matured' },
-    withdrawn: { color: '#94A3B8', bg: 'rgba(148,163,184,0.1)',  label: 'Withdrawn' },
+    active:    { color: 'var(--green)', bg: 'var(--green-dim)',  label: 'Active' },
+    matured:   { color: 'var(--gold)', bg: 'var(--gold-dim)', label: 'Matured' },
+    withdrawn: { color: 'var(--text-2)', bg: 'var(--bg-surface)',  label: 'Withdrawn' },
   };
 
   return (
     <div style={S.listCard}>
       <style>{`
         .inv-row { transition: background 0.15s ease; }
-        .inv-row:hover { background: rgba(255,255,255,0.025) !important; }
-        .inv-remove:hover { color: #F87171 !important; border-color: rgba(248,113,113,0.3) !important; }
+        .inv-row:hover { background: var(--bg-surface) !important; }
+        .inv-remove:hover { color: var(--red) !important; border-color: var(--red-b) !important; }
         .status-select { cursor: pointer; transition: border-color 0.15s ease; }
-        .status-select:hover { border-color: rgba(255,255,255,0.2) !important; }
+        .status-select:hover { border-color: var(--border-s) !important; }
       `}</style>
 
       <div className="list-header">
@@ -289,7 +289,7 @@ export const InvestmentList: React.FC<ListProps> = ({ investments, onRemove, onU
               <div key={inv.id}>
                 <div
                   className="inv-row"
-                  style={{ ...S.invRow, background: expanded ? 'rgba(255,255,255,0.025)' : 'transparent' }}
+                  style={{ ...S.invRow, background: expanded ? 'var(--bg-surface)' : 'transparent' }}
                 >
                   {/* Icon */}
                   <div style={{ ...S.invIcon, background: `${meta.color}15`, border: `1px solid ${meta.color}25` }}>
@@ -306,10 +306,10 @@ export const InvestmentList: React.FC<ListProps> = ({ investments, onRemove, onU
                       <span style={S.dot}>·</span>
                       <span style={{ color: risk.text }}>{meta.riskLevel} risk</span>
                       {inv.isRecurring && (
-                        <><span style={S.dot}>·</span><span style={{ color: '#60A5FA' }}>↻ Monthly</span></>
+                        <><span style={S.dot}>·</span><span style={{ color: 'var(--blue)' }}>↻ Monthly</span></>
                       )}
                       {inv.notes && (
-                        <><span style={S.dot}>·</span><span style={{ color: '#5A6B8A', fontStyle: 'italic' }}>{inv.notes}</span></>
+                        <><span style={S.dot}>·</span><span style={{ color: 'var(--text-3)', fontStyle: 'italic' }}>{inv.notes}</span></>
                       )}
                     </div>
                   </div>
@@ -356,11 +356,11 @@ export const InvestmentList: React.FC<ListProps> = ({ investments, onRemove, onU
                     <div style={S.projTitle}>Growth Projection at {inv.expectedReturnPct}% annual return</div>
                     <div style={S.projGrid}>
                       {[
-                        { label: 'Principal',   val: inv.amount,                                          color: '#9BAAC4' },
-                        { label: '+ 1 Year',    val: projectGrowth(inv.amount, inv.expectedReturnPct, 1), color: '#60A5FA' },
+                        { label: 'Principal',   val: inv.amount,                                          color: 'var(--text-2)' },
+                        { label: '+ 1 Year',    val: projectGrowth(inv.amount, inv.expectedReturnPct, 1), color: 'var(--blue)' },
                         { label: '+ 3 Years',   val: projectGrowth(inv.amount, inv.expectedReturnPct, 3), color: '#A78BFA' },
-                        { label: '+ 5 Years',   val: projectGrowth(inv.amount, inv.expectedReturnPct, 5), color: '#3DD68C' },
-                        { label: '+ 10 Years',  val: projectGrowth(inv.amount, inv.expectedReturnPct, 10), color: '#C9A84C' },
+                        { label: '+ 5 Years',   val: projectGrowth(inv.amount, inv.expectedReturnPct, 5), color: 'var(--green)' },
+                        { label: '+ 10 Years',  val: projectGrowth(inv.amount, inv.expectedReturnPct, 10), color: 'var(--gold)' },
                       ].map((p) => (
                         <div key={p.label} style={S.projStat}>
                           <div style={S.projStatLabel}>{p.label}</div>
@@ -370,9 +370,9 @@ export const InvestmentList: React.FC<ListProps> = ({ investments, onRemove, onU
                     </div>
                     <div style={S.projGainRow}>
                       <span style={S.projGainLabel}>Gain in 1 yr:</span>
-                      <span style={{ color: '#60A5FA' }}>{formatCurrency(Math.round(proj1yr), 'KES')}</span>
+                      <span style={{ color: 'var(--blue)' }}>{formatCurrency(Math.round(proj1yr), 'KES')}</span>
                       <span style={S.projGainLabel}>Gain in 5 yrs:</span>
-                      <span style={{ color: '#3DD68C' }}>{formatCurrency(Math.round(proj5yr), 'KES')}</span>
+                      <span style={{ color: 'var(--green)' }}>{formatCurrency(Math.round(proj5yr), 'KES')}</span>
                     </div>
                   </div>
                 )}
@@ -425,7 +425,7 @@ export const PortfolioAllocation: React.FC<AllocationProps> = ({ summary }) => {
         <div style={S.donutWrap}>
           <svg width="180" height="180" viewBox="0 0 180 180">
             {/* Track */}
-            <circle cx={CX} cy={CY} r={R} fill="none" stroke="#1A2E50" strokeWidth="24" />
+            <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--border-s)" strokeWidth="24" />
             {/* Arcs */}
             {arcs.map(({ cat, pct, offset, meta }) => (
               <circle
@@ -439,8 +439,8 @@ export const PortfolioAllocation: React.FC<AllocationProps> = ({ summary }) => {
                 transform={`rotate(${-90 + offset * 360} ${CX} ${CY})`}
               />
             ))}
-            <text x={CX} y={CY - 6} textAnchor="middle" fill="#9BAAC4" fontSize="11" fontFamily="Karla">Portfolio</text>
-            <text x={CX} y={CY + 12} textAnchor="middle" fill="#C9A84C" fontSize="13" fontFamily="Cormorant Garamond" fontWeight="700">
+            <text x={CX} y={CY - 6} textAnchor="middle" fill="var(--text-2)" fontSize="11" fontFamily="Karla">Portfolio</text>
+            <text x={CX} y={CY + 12} textAnchor="middle" fill="var(--gold)" fontSize="13" fontFamily="Cormorant Garamond" fontWeight="700">
               {entries.length} assets
             </text>
           </svg>
@@ -474,77 +474,77 @@ export const PortfolioAllocation: React.FC<AllocationProps> = ({ summary }) => {
 // ─────────────────────────────────────────────────────────────
 const S: Record<string, React.CSSProperties> = {
   // stat cards
-  statCard:   { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' },
-  statLabel:  { fontSize: 12, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 },
+  statCard:   { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px', boxShadow: 'var(--shadow-md)' },
+  statLabel:  { fontSize: 12, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 },
   statValue:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 700 },
-  statSub:    { fontSize: 12, color: '#5A6B8A', marginTop: 6 },
+  statSub:    { fontSize: 12, color: 'var(--text-3)', marginTop: 6 },
 
   // form
-  formCard:   { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '26px 24px' },
+  formCard:   { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '26px 24px' },
   formHeader: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 },
-  formTitle:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: '#F0EDE4' },
-  successTag: { fontSize: 12, color: '#3DD68C', background: 'rgba(61,214,140,0.12)', padding: '3px 12px', borderRadius: 4, fontWeight: 600 },
+  formTitle:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: 'var(--text-1)' },
+  successTag: { fontSize: 12, color: 'var(--green)', background: 'var(--green-dim)', padding: '3px 12px', borderRadius: 4, fontWeight: 600 },
   catStrip:   { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: '1px solid', marginBottom: 18, flexWrap: 'wrap' },
   catStripIcon: { fontSize: 22, flexShrink: 0 },
   catStripText: { display: 'flex', flexDirection: 'column' as const, gap: 2, flex: 1, minWidth: 0 },
   catStripName: { fontSize: 13, fontWeight: 600 },
-  catStripDesc: { fontSize: 12, color: '#5A6B8A' },
+  catStripDesc: { fontSize: 12, color: 'var(--text-3)' },
   riskBadge:  { fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 4, textTransform: 'capitalize' as const, letterSpacing: '0.05em', flexShrink: 0 },
-  avgReturn:  { fontSize: 13, color: '#C9A84C', fontWeight: 600, flexShrink: 0 },
+  avgReturn:  { fontSize: 13, color: 'var(--gold)', fontWeight: 600, flexShrink: 0 },
   field:      { display: 'flex', flexDirection: 'column' as const, gap: 6 },
-  label:      { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase' as const, letterSpacing: '0.07em' },
-  input:      { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif', transition: 'border-color 0.2s ease', width: '100%' },
-  select:     { background: '#0F1F3D', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif', width: '100%' },
-  checkLabel: { display: 'flex', alignItems: 'center', gap: 8, color: '#9BAAC4', fontSize: 14, cursor: 'pointer' },
-  addBtn:     { padding: '11px 26px', background: 'linear-gradient(135deg, #3DD68C, #2BBA76)', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', boxShadow: '0 4px 20px rgba(61,214,140,0.25)', cursor: 'pointer', border: 'none' },
+  label:      { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase' as const, letterSpacing: '0.07em' },
+  input:      { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif', transition: 'border-color 0.2s ease', width: '100%' },
+  select:     { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif', width: '100%' },
+  checkLabel: { display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-2)', fontSize: 14, cursor: 'pointer' },
+  addBtn:     { padding: '11px 26px', background: 'linear-gradient(135deg, var(--green), #2BBA76)', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', boxShadow: '0 4px 20px var(--green-dim)', cursor: 'pointer', border: 'none' },
 
   // list
-  listCard:   { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 22px', marginTop: 16 },
-  listTitle:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4' },
+  listCard:   { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 22px', marginTop: 16 },
+  listTitle:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: 'var(--text-1)' },
   filterRow:  { display: 'flex', gap: 6, flexWrap: 'wrap' as const },
-  filterBtn:  { padding: '6px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, color: '#5A6B8A', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
-  filterBtnActive: { background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C' },
+  filterBtn:  { padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-3)', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
+  filterBtnActive: { background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', color: 'var(--gold)' },
   emptyList:  { textAlign: 'center' as const, padding: '40px 20px' },
   emptyIcon:  { fontSize: 40, marginBottom: 12 },
-  emptyTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, color: '#F0EDE4', marginBottom: 8 },
-  emptyText:  { fontSize: 14, color: '#5A6B8A', lineHeight: 1.5 },
+  emptyTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, color: 'var(--text-1)', marginBottom: 8 },
+  emptyText:  { fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5 },
   list:       { display: 'flex', flexDirection: 'column' as const, gap: 0 },
-  invRow:     { display: 'flex', alignItems: 'center', gap: 12, padding: '13px 10px', borderRadius: 10, borderBottom: '1px solid rgba(255,255,255,0.04)' },
+  invRow:     { display: 'flex', alignItems: 'center', gap: 12, padding: '13px 10px', borderRadius: 10, borderBottom: '1px solid var(--border)' },
   invIcon:    { width: 42, height: 42, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 },
   invInfo:    { flex: 1, minWidth: 0 },
-  invName:    { fontSize: 14, color: '#F0EDE4', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
-  invMeta:    { display: 'flex', gap: 6, fontSize: 12, color: '#5A6B8A', marginTop: 2, flexWrap: 'wrap' as const },
-  dot:        { color: '#2A3B58' },
+  invName:    { fontSize: 14, color: 'var(--text-1)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  invMeta:    { display: 'flex', gap: 6, fontSize: 12, color: 'var(--text-3)', marginTop: 2, flexWrap: 'wrap' as const },
+  dot:        { color: 'var(--text-3)' },
   invRight:   { textAlign: 'right' as const, flexShrink: 0 },
-  invAmount:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 600, color: '#F0EDE4' },
-  invReturn:  { fontSize: 12, color: '#3DD68C', marginTop: 2 },
+  invAmount:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 600, color: 'var(--text-1)' },
+  invReturn:  { fontSize: 12, color: 'var(--green)', marginTop: 2 },
   statusSelect: { fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 20, border: '1px solid', fontFamily: 'Karla, sans-serif', letterSpacing: '0.04em', flexShrink: 0, appearance: 'none' as const },
-  expandBtn:  { background: 'transparent', color: '#3A4E6A', fontSize: 10, padding: '4px 8px', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, cursor: 'pointer', flexShrink: 0, fontFamily: 'Karla, sans-serif' },
-  removeBtn:  { background: 'transparent', color: '#2A3B58', fontSize: 13, padding: '4px 8px', borderRadius: 6, border: '1px solid transparent', flexShrink: 0, cursor: 'pointer', transition: 'color 0.15s, border-color 0.15s' },
+  expandBtn:  { background: 'transparent', color: 'var(--text-3)', fontSize: 10, padding: '4px 8px', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', flexShrink: 0, fontFamily: 'Karla, sans-serif' },
+  removeBtn:  { background: 'transparent', color: 'var(--text-3)', fontSize: 13, padding: '4px 8px', borderRadius: 6, border: '1px solid transparent', flexShrink: 0, cursor: 'pointer', transition: 'color 0.15s, border-color 0.15s' },
 
   // projections
-  projRow:    { margin: '0 0 4px', padding: '14px 16px', background: 'rgba(61,214,140,0.04)', border: '1px solid rgba(61,214,140,0.1)', borderRadius: '0 0 10px 10px', marginTop: -4 },
-  projTitle:  { fontSize: 12, color: '#5A6B8A', marginBottom: 12, textTransform: 'uppercase' as const, letterSpacing: '0.06em' },
+  projRow:    { margin: '0 0 4px', padding: '14px 16px', background: 'var(--green-dim)', border: '1px solid var(--green-b)', borderRadius: '0 0 10px 10px', marginTop: -4 },
+  projTitle:  { fontSize: 12, color: 'var(--text-3)', marginBottom: 12, textTransform: 'uppercase' as const, letterSpacing: '0.06em' },
   projGrid:   { display: 'flex', gap: 12, flexWrap: 'wrap' as const },
-  projStat:   { background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.04)', minWidth: 100 },
-  projStatLabel: { fontSize: 11, color: '#5A6B8A', marginBottom: 4 },
+  projStat:   { background: 'var(--bg-surface)', borderRadius: 8, padding: '10px 14px', border: '1px solid var(--border)', minWidth: 100 },
+  projStatLabel: { fontSize: 11, color: 'var(--text-3)', marginBottom: 4 },
   projStatVal:   { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 700 },
   projGainRow: { display: 'flex', gap: 16, marginTop: 12, fontSize: 13, alignItems: 'center', flexWrap: 'wrap' as const },
-  projGainLabel: { color: '#5A6B8A' },
+  projGainLabel: { color: 'var(--text-3)' },
 
   // allocation card
-  allocCard:  { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px' },
-  cardTitle:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4', marginBottom: 18 },
+  allocCard:  { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px' },
+  cardTitle:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: 'var(--text-1)', marginBottom: 18 },
   allocInner: { display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' as const },
   donutWrap:  { flexShrink: 0 },
   allocLegend: { flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column' as const, gap: 12, justifyContent: 'center' },
   allocItem:  { display: 'flex', alignItems: 'center', gap: 10 },
   allocDot:   { width: 10, height: 10, borderRadius: '50%', flexShrink: 0 },
   allocItemInfo: { flex: 1, minWidth: 0 },
-  allocCatName: { fontSize: 13, color: '#9BAAC4', display: 'block', marginBottom: 4 },
-  allocBarTrack: { height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' },
+  allocCatName: { fontSize: 13, color: 'var(--text-2)', display: 'block', marginBottom: 4 },
+  allocBarTrack: { height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' },
   allocBarFill: { height: '100%', borderRadius: 2, transition: 'width 0.6s ease' },
   allocItemRight: { display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 1, flexShrink: 0 },
   allocPct:   { fontSize: 13, fontWeight: 700 },
-  allocAmt:   { fontFamily: 'Cormorant Garamond, serif', fontSize: 13, color: '#F0EDE4' },
+  allocAmt:   { fontFamily: 'Cormorant Garamond, serif', fontSize: 13, color: 'var(--text-1)' },
 };

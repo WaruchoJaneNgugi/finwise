@@ -180,7 +180,7 @@ export interface LiabilityCategoryMeta {
 
 export interface UserProfile {
   name: string;
-  email: string;
+  phone: string;
   pin: string;
   createdAt: string;
 }

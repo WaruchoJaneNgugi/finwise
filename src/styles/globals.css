@@ -1,11 +1,57 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
 
 /* ═══════════════════════════════════════════════
-   DARK THEME (default)
+   LIGHT THEME (default)
 ═══════════════════════════════════════════════ */
-:root, [data-theme="dark"] {
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --bg-page:        #EEE9DF;
+  --bg-card:        #FFFFFF;
+  --bg-surface:     #F3EFE6;
+  --bg-elevated:    #FFFFFF;
+  --bg-overlay:     rgba(255,255,255,0.97);
+  --sidebar-bg:     #FFFFFF;
+  --sidebar-border: rgba(10,22,40,0.08);
+  --sidebar-hover:  rgba(154,109,26,0.05);
+  --sidebar-active: rgba(154,109,26,0.09);
+  --sidebar-ab:     rgb(155 86 5 / 0.38);
+  --border:         rgba(10,22,40,0.08);
+  --border-s:       rgba(10,22,40,0.16);
+  --border-acc: rgb(155 86 5 / 0.30);
+  --border-focus: rgb(178 98 5 / 0.55);
+  --text-1:         #0A1628;
+  --text-2:         #3D5070;
+  --text-3:         #8899B8;
+  --gold: #9b5605;
+  --gold-l:         #D97706;
+  --gold-dim:       rgba(154,109,26,0.09);
+  --gold-glow:      rgba(154,109,26,0.14);
+  --green:          #059669;
+  --green-dim:      rgba(5,150,105,0.10);
+  --green-b:        rgba(5,150,105,0.22);
+  --red:            #DC2626;
+  --red-dim:        rgba(220,38,38,0.09);
+  --red-b:          rgba(220,38,38,0.22);
+  --amber:          #D97706;
+  --amber-dim:      rgba(217,119,6,0.10);
+  --blue:           #2563EB;
+  --blue-dim:       rgba(37,99,235,0.10);
+  --shadow:         0 1px 6px rgba(10,22,40,0.08);
+  --shadow-md:      0 4px 18px rgba(10,22,40,0.10);
+  --shadow-lg:      0 16px 48px rgba(10,22,40,0.14);
+  --shadow-card:    0 1px 3px rgba(10,22,40,0.07),0 4px 12px rgba(10,22,40,0.05);
+  --topbar-bg:      rgba(255,255,255,0.93);
+  --topbar-b:       rgba(10,22,40,0.08);
+  --score-excellent:#059669; --score-good:#2563EB; --score-fair:#D97706;
+  --score-poor:#EA580C; --score-critical:#DC2626;
+}
+
+/* ═══════════════════════════════════════════════
+   DARK THEME
+═══════════════════════════════════════════════ */
+[data-theme="dark"] {
   color-scheme: dark;
-  --bg-page:        #060D1A;
+  --bg-page: #122346;
   --bg-card:        #0F1E38;
   --bg-surface:     #192B4A;
   --bg-elevated:    #1F3358;
@@ -44,52 +90,6 @@
   --topbar-b:       rgba(201,168,76,0.08);
   --score-excellent:#34D399; --score-good:#60A5FA; --score-fair:#FBBF24;
   --score-poor:#FB923C; --score-critical:#F87171;
-}
-
-/* ═══════════════════════════════════════════════
-   LIGHT THEME
-═══════════════════════════════════════════════ */
-[data-theme="light"] {
-  color-scheme: light;
-  --bg-page:        #EEE9DF;
-  --bg-card:        #FFFFFF;
-  --bg-surface:     #F3EFE6;
-  --bg-elevated:    #FFFFFF;
-  --bg-overlay:     rgba(255,255,255,0.97);
-  --sidebar-bg:     #FFFFFF;
-  --sidebar-border: rgba(10,22,40,0.08);
-  --sidebar-hover:  rgba(154,109,26,0.05);
-  --sidebar-active: rgba(154,109,26,0.09);
-  --sidebar-ab:     rgba(154,109,26,0.38);
-  --border:         rgba(10,22,40,0.08);
-  --border-s:       rgba(10,22,40,0.16);
-  --border-acc:     rgba(154,109,26,0.30);
-  --border-focus:   rgba(154,109,26,0.55);
-  --text-1:         #0A1628;
-  --text-2:         #3D5070;
-  --text-3:         #8899B8;
-  --gold:           #9A6D1A;
-  --gold-l:         #B8922E;
-  --gold-dim:       rgba(154,109,26,0.09);
-  --gold-glow:      rgba(154,109,26,0.14);
-  --green:          #059669;
-  --green-dim:      rgba(5,150,105,0.10);
-  --green-b:        rgba(5,150,105,0.22);
-  --red:            #DC2626;
-  --red-dim:        rgba(220,38,38,0.09);
-  --red-b:          rgba(220,38,38,0.22);
-  --amber:          #D97706;
-  --amber-dim:      rgba(217,119,6,0.10);
-  --blue:           #2563EB;
-  --blue-dim:       rgba(37,99,235,0.10);
-  --shadow:         0 1px 6px rgba(10,22,40,0.08);
-  --shadow-md:      0 4px 18px rgba(10,22,40,0.10);
-  --shadow-lg:      0 16px 48px rgba(10,22,40,0.14);
-  --shadow-card:    0 1px 3px rgba(10,22,40,0.07),0 4px 12px rgba(10,22,40,0.05);
-  --topbar-bg:      rgba(255,255,255,0.93);
-  --topbar-b:       rgba(10,22,40,0.08);
-  --score-excellent:#059669; --score-good:#2563EB; --score-fair:#D97706;
-  --score-poor:#EA580C; --score-critical:#DC2626;
 }
 
 /* ═══════════════════════════════════════════════

@@ -81,8 +81,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAdd }) => {
           <div style={S.typeTag}>
             <span style={{
               ...S.typeChip,
-              background: CATEGORY_META[category].type === 'necessary' ? 'rgba(61,214,140,0.15)' : 'rgba(251,191,36,0.15)',
-              color: CATEGORY_META[category].type === 'necessary' ? '#3DD68C' : '#FBBF24',
+              background: CATEGORY_META[category].type === 'necessary' ? 'var(--green-dim)' : 'var(--amber-dim)',
+              color: CATEGORY_META[category].type === 'necessary' ? 'var(--green)' : 'var(--amber)',
             }}>
               {CATEGORY_META[category].type === 'necessary' ? '✓ Necessary' : '⚠ Unnecessary'}
             </span>
@@ -94,7 +94,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAdd }) => {
         <label style={S.checkLabel}>
           <input type="checkbox" checked={isRecurring}
             onChange={(e) => setIsRecurring(e.target.checked)}
-            style={{ accentColor: '#C9A84C' }} />
+            style={{ accentColor: 'var(--gold)' }} />
           <span>Recurring expense</span>
         </label>
         <button
@@ -152,7 +152,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemove, cu
                 </div>
                 <div style={S.expRight}>
                   <div style={S.expAmount}>{formatCurrency(exp.amount, currency)}</div>
-                  <div style={{ ...S.expType, color: meta.type === 'necessary' ? '#3DD68C' : '#FBBF24' }}>
+                  <div style={{ ...S.expType, color: meta.type === 'necessary' ? 'var(--green)' : 'var(--amber)' }}>
                     {meta.type}
                   </div>
                 </div>
@@ -167,33 +167,33 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onRemove, cu
 };
 
 const S: Record<string, React.CSSProperties> = {
-  formCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 22px' },
+  formCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 22px' },
   formTitle: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 },
-  formTitleText: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: '#F0EDE4' },
-  successTag: { fontSize: 12, color: '#3DD68C', background: 'rgba(61,214,140,0.12)', padding: '3px 10px', borderRadius: 4, fontWeight: 600 },
+  formTitleText: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: 'var(--text-1)' },
+  successTag: { fontSize: 12, color: 'var(--green)', background: 'var(--green-dim)', padding: '3px 10px', borderRadius: 4, fontWeight: 600 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em' },
-  input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif' },
-  select: { background: '#0F1F3D', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  label: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em' },
+  input: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  select: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif' },
   typeTag: { display: 'flex', alignItems: 'center', paddingTop: 4 },
   typeChip: { padding: '8px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600 },
-  checkLabel: { display: 'flex', alignItems: 'center', gap: 8, color: '#9BAAC4', fontSize: 14, cursor: 'pointer' },
-  addBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', boxShadow: '0 4px 20px rgba(201,168,76,0.3)' },
-  listCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 22px', marginTop: 16 },
-  listTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4' },
+  checkLabel: { display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-2)', fontSize: 14, cursor: 'pointer' },
+  addBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', boxShadow: '0 4px 20px var(--gold-glow)' },
+  listCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 22px', marginTop: 16 },
+  listTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: 'var(--text-1)' },
   filterRow: { display: 'flex', gap: 6, flexWrap: 'wrap' },
-  filterBtn: { padding: '6px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, color: '#5A6B8A', fontSize: 12, fontFamily: 'Karla, sans-serif' },
-  filterBtnActive: { background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C' },
-  emptyList: { color: '#5A6B8A', fontSize: 14, padding: '20px 0', textAlign: 'center' },
+  filterBtn: { padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-3)', fontSize: 12, fontFamily: 'Karla, sans-serif' },
+  filterBtnActive: { background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', color: 'var(--gold)' },
+  emptyList: { color: 'var(--text-3)', fontSize: 14, padding: '20px 0', textAlign: 'center' },
   list: { display: 'flex', flexDirection: 'column', gap: 2 },
   expIcon: { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 },
   expInfo: { flex: 1, minWidth: 0 },
-  expName: { fontSize: 14, color: '#F0EDE4', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  expMeta: { display: 'flex', gap: 6, fontSize: 12, color: '#5A6B8A', marginTop: 2, flexWrap: 'wrap' },
-  expDot: { color: '#2A3B58' },
-  recurringTag: { color: '#60A5FA' },
+  expName: { fontSize: 14, color: 'var(--text-1)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  expMeta: { display: 'flex', gap: 6, fontSize: 12, color: 'var(--text-3)', marginTop: 2, flexWrap: 'wrap' },
+  expDot: { color: 'var(--text-3)' },
+  recurringTag: { color: 'var(--blue)' },
   expRight: { textAlign: 'right', flexShrink: 0 },
   expAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 600 },
   expType: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em' },
-  removeBtn: { background: 'transparent', color: '#2A3B58', fontSize: 14, padding: '4px 8px', borderRadius: 6, border: '1px solid transparent', flexShrink: 0 },
+  removeBtn: { background: 'transparent', color: 'var(--text-3)', fontSize: 14, padding: '4px 8px', borderRadius: 6, border: '1px solid transparent', flexShrink: 0 },
 };

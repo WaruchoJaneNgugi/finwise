@@ -55,10 +55,10 @@ export const Bills: React.FC<BillsProps> = ({
       {/* Summary */}
       <div className="stats-grid">
         {[
-          { label: 'Monthly Total',  val: formatCurrency(monthlyTotal, currency), color: '#F0EDE4' },
-          { label: 'Paid This Month',val: formatCurrency(paidTotal, currency),    color: '#3DD68C' },
-          { label: 'Still to Pay',   val: formatCurrency(unpaidTotal, currency),  color: '#FBBF24' },
-          { label: 'Overdue Bills',  val: overdueCount,                           color: overdueCount > 0 ? '#F87171' : '#3DD68C' },
+          { label: 'Monthly Total',  val: formatCurrency(monthlyTotal, currency), color: 'var(--text-1)' },
+          { label: 'Paid This Month',val: formatCurrency(paidTotal, currency),    color: 'var(--green)' },
+          { label: 'Still to Pay',   val: formatCurrency(unpaidTotal, currency),  color: 'var(--amber)' },
+          { label: 'Overdue Bills',  val: overdueCount,                           color: overdueCount > 0 ? 'var(--red)' : 'var(--green)' },
         ].map((s) => (
           <div key={s.label} style={S.statCard}>
             <div style={S.statLabel}>{s.label}</div>
@@ -77,8 +77,8 @@ export const Bills: React.FC<BillsProps> = ({
               return (
                 <div key={b.id} style={S.alertBill}>
                   <span>{BILL_META[b.category].icon} {b.name}</span>
-                  <span style={{ color: '#FBBF24' }}>{formatCurrency(b.amount, currency)}</span>
-                  <span style={{ color: days === 0 ? '#F87171' : '#9BAAC4' }}>{days === 0 ? 'Due today' : `${days}d left`}</span>
+                  <span style={{ color: 'var(--amber)' }}>{formatCurrency(b.amount, currency)}</span>
+                  <span style={{ color: days === 0 ? 'var(--red)' : 'var(--text-2)' }}>{days === 0 ? 'Due today' : `${days}d left`}</span>
                 </div>
               );
             })}
@@ -156,7 +156,7 @@ export const Bills: React.FC<BillsProps> = ({
               const daysLeft = getDaysUntilDue(bill.dueDay);
               const isOverdue = bill.status === 'overdue' || (bill.status !== 'paid' && new Date().getDate() > bill.dueDay);
               const isPaid = bill.status === 'paid';
-              const statusColor = isPaid ? '#3DD68C' : isOverdue ? '#F87171' : daysLeft <= 3 ? '#FBBF24' : '#9BAAC4';
+              const statusColor = isPaid ? 'var(--green)' : isOverdue ? 'var(--red)' : daysLeft <= 3 ? 'var(--amber)' : 'var(--text-2)';
 
               return (
                 <div key={bill.id} style={{ ...S.billItem, opacity: isPaid ? 0.6 : 1 }} className="bill-item-resp">
@@ -179,10 +179,10 @@ export const Bills: React.FC<BillsProps> = ({
                   </div>
                   <div style={S.billActions}>
                     {isPaid
-                      ? <button style={{ ...S.actionBtn, color: '#5A6B8A' }} onClick={() => onMarkUnpaid(bill.id)}>Undo</button>
-                      : <button style={{ ...S.actionBtn, color: '#3DD68C', borderColor: 'rgba(61,214,140,0.25)' }} onClick={() => onMarkPaid(bill.id)}>✓ Paid</button>
+                      ? <button style={{ ...S.actionBtn, color: 'var(--text-3)' }} onClick={() => onMarkUnpaid(bill.id)}>Undo</button>
+                      : <button style={{ ...S.actionBtn, color: 'var(--green)', borderColor: 'var(--green-b)' }} onClick={() => onMarkPaid(bill.id)}>✓ Paid</button>
                     }
-                    <button style={{ ...S.actionBtn, color: '#2A3B58' }} onClick={() => onRemove(bill.id)}>✕</button>
+                    <button style={{ ...S.actionBtn, color: 'var(--text-3)' }} onClick={() => onRemove(bill.id)}>✕</button>
                   </div>
                 </div>
               );
@@ -196,39 +196,39 @@ export const Bills: React.FC<BillsProps> = ({
 
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
-  cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4' },
-  statCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '16px 18px' },
-  statLabel: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 },
+  cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: 'var(--text-1)' },
+  statCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' },
+  statLabel: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 },
   statVal: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 700 },
-  alertCard: { background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: '18px 20px' },
-  alertTitle: { fontSize: 14, fontWeight: 600, color: '#FBBF24', marginBottom: 12 },
+  alertCard: { background: 'var(--amber-dim)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: '18px 20px' },
+  alertTitle: { fontSize: 14, fontWeight: 600, color: 'var(--amber)', marginBottom: 12 },
   alertBills: { display: 'flex', flexDirection: 'column', gap: 8 },
-  alertBill: { display: 'flex', gap: 16, fontSize: 13, color: '#9BAAC4', justifyContent: 'space-between' },
-  formCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 22px' },
+  alertBill: { display: 'flex', gap: 16, fontSize: 13, color: 'var(--text-2)', justifyContent: 'space-between' },
+  formCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 22px' },
   formTitleRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 },
-  successTag: { fontSize: 12, color: '#3DD68C', background: 'rgba(61,214,140,0.12)', padding: '3px 10px', borderRadius: 4, fontWeight: 600 },
+  successTag: { fontSize: 12, color: 'var(--green)', background: 'var(--green-dim)', padding: '3px 10px', borderRadius: 4, fontWeight: 600 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em' },
-  input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif' },
-  select: { background: '#0F1F3D', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  label: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em' },
+  input: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  select: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif' },
   formBottom: { display: 'flex', justifyContent: 'flex-end', marginTop: 16 },
-  addBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif' },
-  listCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 22px' },
+  addBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  listCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 22px' },
   listHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 10 },
   filterRow: { display: 'flex', gap: 6 },
-  filterBtn: { padding: '6px 12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, color: '#5A6B8A', fontSize: 12 },
-  filterActive: { background: 'rgba(201,168,76,0.12)', borderColor: 'rgba(201,168,76,0.25)', color: '#C9A84C' },
-  emptyMsg: { color: '#5A6B8A', fontSize: 14, textAlign: 'center', padding: '24px 0' },
+  filterBtn: { padding: '6px 12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-3)', fontSize: 12 },
+  filterActive: { background: 'var(--gold-dim)', borderColor: 'var(--border-acc)', color: 'var(--gold)' },
+  emptyMsg: { color: 'var(--text-3)', fontSize: 14, textAlign: 'center', padding: '24px 0' },
   billList: { display: 'flex', flexDirection: 'column', gap: 2 },
   billItem: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 10px', borderRadius: 10, transition: '0.15s ease' },
   billIcon: { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 },
   billInfo: { flex: 1, minWidth: 0 },
-  billName: { fontSize: 14, color: '#F0EDE4', fontWeight: 500 },
-  billMeta: { display: 'flex', gap: 6, fontSize: 12, color: '#5A6B8A', marginTop: 2 },
-  dot: { color: '#2A3B58' },
+  billName: { fontSize: 14, color: 'var(--text-1)', fontWeight: 500 },
+  billMeta: { display: 'flex', gap: 6, fontSize: 12, color: 'var(--text-3)', marginTop: 2 },
+  dot: { color: 'var(--text-3)' },
   billRight: { textAlign: 'right', flexShrink: 0 },
-  billAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 600, color: '#F0EDE4' },
+  billAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 600, color: 'var(--text-1)' },
   billStatus: { fontSize: 11, marginTop: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' },
   billActions: { display: 'flex', gap: 6, flexShrink: 0 },
-  actionBtn: { padding: '6px 12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: 12, fontFamily: 'Karla, sans-serif', fontWeight: 600, cursor: 'pointer' },
+  actionBtn: { padding: '6px 12px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, fontFamily: 'Karla, sans-serif', fontWeight: 600, cursor: 'pointer' },
 };

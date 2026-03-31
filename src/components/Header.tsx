@@ -7,10 +7,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         try {
             const stored = localStorage.getItem('fw-theme');
             if (stored === 'light' || stored === 'dark') return stored;
-            // Check system preference
-            return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            return 'light';
         } catch {
-            return 'dark';
+            return 'light';
         }
     });
 
@@ -79,6 +78,7 @@ interface HeaderProps {
   scoreLevel:          string;
   userName?:           string;
   onLock?:             () => void;
+  onLogout?:           () => void;
   onExportExpenses?:   () => void;
   onExportInvestments?:() => void;
   onExportNetWorth?:   () => void;
@@ -94,6 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 scoreLevel,
                                                 userName,
                                                 onLock,
+                                                onLogout,
                                                 onExportExpenses,
                                                 onExportInvestments,
                                                 onExportNetWorth,
@@ -371,6 +372,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button className="fw-dropdown-item" onClick={onExportNetWorth} role="menuitem">⬇ Export Net Worth</button>
                     <div className="fw-dropdown-sep" role="separator" />
                     <button className="fw-dropdown-item fw-dropdown-item--danger" onClick={onLock} role="menuitem">🔒 Lock App</button>
+                    <button className="fw-dropdown-item fw-dropdown-item--danger" onClick={() => onLogout?.()} role="menuitem">🚪 Log Out</button>
                   </div>
               )}
             </div>

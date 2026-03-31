@@ -1,191 +1,222 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface AuthGateProps {
   hasProfile: boolean;
-  onCreateProfile: (name: string, email: string, pin: string) => void;
-  onUnlock: (pin: string) => boolean;
+  onCreateProfile: (name: string, phone: string, pin: string) => void;
+  onUnlock: (phone: string, pin: string) => Promise<boolean>;
+  loading?: boolean;
+  error?: string | null;
 }
 
-type AuthScreen = 'unlock' | 'create-1' | 'create-2';
+const PIN_LENGTH = 4;
 
-export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile, onUnlock }) => {
-  const [screen, setScreen] = useState<AuthScreen>(hasProfile ? 'unlock' : 'create-1');
+const PinInput: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+  onComplete?: (v: string) => void;
+  error: boolean;
+  autoFocus?: boolean;
+}> = ({ value, onChange, onComplete, error, autoFocus }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Create profile fields
-  const [name, setName]             = useState('');
-  const [email, setEmail]           = useState('');
-  const [pin, setPin]               = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [pinError, setPinError]     = useState('');
+  useEffect(() => { if (autoFocus) inputRef.current?.focus(); }, [autoFocus]);
 
-  // Unlock fields
-  const [unlockPin, setUnlockPin]     = useState('');
-  const [unlockError, setUnlockError] = useState('');
-  const [attempts, setAttempts]       = useState(0);
-
-  const handleCreateStep1 = () => {
-    if (!name.trim() || !email.trim()) return;
-    setScreen('create-2');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
+    onChange(v);
+    if (v.length === PIN_LENGTH) onComplete?.(v);
   };
 
-  const handleCreateFinish = () => {
-    if (pin.length < 4) { setPinError('PIN must be at least 4 digits'); return; }
-    if (pin !== confirmPin) { setPinError('PINs do not match'); return; }
-    onCreateProfile(name.trim(), email.trim(), pin);
+  return (
+    <div style={{ position: 'relative', marginBottom: 4 }} onClick={() => inputRef.current?.focus()}>
+      {/* Hidden real input */}
+      <input
+        ref={inputRef}
+        type="password"
+        inputMode="numeric"
+        value={value}
+        onChange={handleChange}
+        style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', top: 0, left: 0, cursor: 'pointer' }}
+        autoFocus={autoFocus}
+      />
+      {/* Visual dots */}
+      <div style={{ display: 'flex', gap: 14, justifyContent: 'center', padding: '12px 0' }}>
+        {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+          <div key={i} style={{
+            width: 18, height: 18, borderRadius: '4px',
+            background: i < value.length ? (error ? 'var(--red)' : 'var(--gold)') : 'var(--border-s)',
+            transition: 'background 0.15s',
+            boxShadow: i < value.length ? `0 0 8px ${error ? 'var(--red)' : 'var(--gold)'}80` : 'none',
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile, onUnlock, loading, error: authError }) => {
+  const [mode, setMode] = useState<'login' | 'signup'>(hasProfile ? 'login' : 'signup');
+
+  // Signup
+  const [name, setName]       = useState('');
+  const [phone, setPhone]     = useState('');
+  const [pin, setPin]         = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [step, setStep]       = useState<'info' | 'pin' | 'confirm'>('info');
+  const [signupErr, setSignupErr] = useState('');
+
+  // Login
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginPin, setLoginPin]     = useState('');
+  const [loginStep, setLoginStep]   = useState<'phone' | 'pin'>('phone');
+  const [loginErr, setLoginErr]     = useState('');
+  const [attempts, setAttempts]     = useState(0);
+
+  const handleLoginPinComplete = (v: string) => {
+    setTimeout(async () => {
+      const ok = await onUnlock(loginPhone, v);
+      if (!ok) {
+        setAttempts(a => a + 1);
+        setLoginPin('');
+      }
+    }, 120);
   };
 
-  const handleUnlock = () => {
-    if (!unlockPin.trim()) return;
-    const ok = onUnlock(unlockPin);
-    if (!ok) {
-      setAttempts((a) => a + 1);
-      setUnlockError(`Incorrect PIN${attempts >= 2 ? ' — check your profile PIN' : ''}`);
-      setUnlockPin('');
-    }
+  const handleSignupPinComplete = (v: string) => {
+    setTimeout(() => setStep('confirm'), 200);
   };
 
-  const handlePinInput = (setter: (v: string) => void, clear: () => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setter(val);
-    clear();
+  const handleConfirmComplete = (v: string) => {
+    setTimeout(() => {
+      if (v !== pin) { setSignupErr('PINs do not match'); setConfirm(''); setPin(''); setStep('pin'); }
+      else onCreateProfile(name.trim(), phone.trim(), v);
+    }, 120);
   };
+
+  const switchToLogin = () => { setName(''); setPhone(''); setPin(''); setConfirm(''); setStep('info'); setSignupErr(''); setMode('login'); };
+  const switchToSignup = () => { setLoginPhone(''); setLoginPin(''); setLoginStep('phone'); setLoginErr(''); setMode('signup'); };
 
   return (
     <div style={S.overlay}>
       <style>{`
-        @keyframes authFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-card { animation: authFadeIn 0.4s ease forwards; }
-        @media (max-width: 480px) {
-          .auth-card { padding: 28px 20px !important; border-radius: 16px !important; }
-        }
-        @media (max-width: 360px) {
-          .auth-card { padding: 22px 14px !important; }
-        }
+        @keyframes authIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        .auth-card { animation: authIn 0.35s ease forwards; }
       `}</style>
-
       <div style={S.bg} />
-
       <div style={S.card} className="auth-card">
+
         {/* Logo */}
         <div style={S.logoRow}>
-          <div style={S.logoMark}><span style={S.logoSymbol}>Ƒ</span></div>
+          <div style={S.logoMark}><span style={S.logoSym}>Ƒ</span></div>
           <div>
             <div style={S.logoName}>FinWise</div>
-            <div style={S.logoTagline}>YOUR MONEY, MASTERED</div>
+            <div style={S.logoTag}>YOUR MONEY, MASTERED</div>
           </div>
         </div>
 
-        {/* UNLOCK */}
-        {screen === 'unlock' && (
+        {/* ── LOGIN: phone ── */}
+        {mode === 'login' && loginStep === 'phone' && (
           <>
             <div style={S.title}>Welcome Back</div>
-            <p style={S.subtitle}>Enter your PIN to unlock FinWise</p>
-            <div style={S.pinWrap}>
-              <input
-                style={S.pinInput}
-                type="password"
-                inputMode="numeric"
-                placeholder="••••••"
-                value={unlockPin}
-                onChange={handlePinInput(setUnlockPin, () => setUnlockError(''))}
-                onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
-                autoFocus
-                maxLength={6}
-              />
+            <p style={S.sub}>Enter your phone number to continue</p>
+            <div style={S.field}>
+              <label style={S.label}>Phone Number</label>
+              <input style={S.input} type="tel" placeholder="e.g. 0712 345 678" value={loginPhone} autoFocus
+                onChange={e => setLoginPhone(e.target.value.replace(/[^\d\s+]/g, ''))}
+                onKeyDown={e => e.key === 'Enter' && loginPhone.trim() && setLoginStep('pin')} />
             </div>
-            {unlockError && <div style={S.errorMsg}>{unlockError}</div>}
-            <button style={{ ...S.primaryBtn, opacity: !unlockPin.trim() ? 0.5 : 1 }} onClick={handleUnlock} disabled={!unlockPin.trim()}>
-              Unlock →
+            <button style={{ ...S.btn, marginTop: 20, opacity: !loginPhone.trim() || loading ? 0.5 : 1 }}
+              disabled={!loginPhone.trim() || loading} onClick={() => setLoginStep('pin')}>
+              {loading ? 'Please wait…' : 'Continue →'}
             </button>
-            <div style={S.forgotHint}>
-              Your data is stored locally on this device. If you forget your PIN, you can{' '}
-              <button style={S.linkBtn} onClick={() => { if (window.confirm('This will delete all your data. Continue?')) { localStorage.clear(); window.location.reload(); } }}>
-                reset everything
-              </button>.
+            <div style={S.hint}>No account? <button style={S.link} onClick={switchToSignup}>Create one</button></div>
+          </>
+        )}
+
+        {/* ── LOGIN: pin ── */}
+        {mode === 'login' && loginStep === 'pin' && (
+          <>
+            <div style={S.title}>Enter PIN</div>
+            <p style={S.sub}>Enter your 4-digit PIN</p>
+            <PinInput value={loginPin} onChange={v => { setLoginPin(v); setLoginErr(''); }} onComplete={handleLoginPinComplete} error={!!(loginErr || authError)} autoFocus />
+            {(loginErr || authError) && <div style={S.err}>{loginErr || authError}</div>}
+            <button style={S.backLink} onClick={() => { setLoginPin(''); setLoginErr(''); setLoginStep('phone'); }}>← Back</button>
+            <div style={S.hint}>
+              Forgot PIN? <button style={S.link} onClick={() => { if (window.confirm('This will delete all your data. Continue?')) { localStorage.clear(); window.location.reload(); } }}>Reset everything</button>
             </div>
           </>
         )}
 
-        {/* CREATE STEP 1 */}
-        {screen === 'create-1' && (
+        {/* ── SIGNUP: info ── */}
+        {mode === 'signup' && step === 'info' && (
           <>
-            <div style={S.title}>Create Your Profile</div>
-            <p style={S.subtitle}>Set up your private FinWise account — all data stays on this device</p>
+            <div style={S.title}>Create Account</div>
+            <p style={S.sub}>All data stays on this device</p>
             <div style={S.fields}>
               <div style={S.field}>
                 <label style={S.label}>Your Name</label>
-                <input style={S.input} placeholder="e.g. Amina" value={name} onChange={(e) => setName(e.target.value)} />
+                <input style={S.input} placeholder="e.g. Amina" value={name} autoFocus onChange={e => setName(e.target.value)} />
               </div>
               <div style={S.field}>
-                <label style={S.label}>Email (for display only)</label>
-                <input style={S.input} type="email" placeholder="amina@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <label style={S.label}>Phone Number</label>
+                <input style={S.input} type="tel" placeholder="e.g. 0712 345 678" value={phone}
+                  onChange={e => setPhone(e.target.value.replace(/[^\d\s+]/g, ''))}
+                  onKeyDown={e => e.key === 'Enter' && name.trim() && phone.trim() && setStep('pin')} />
               </div>
             </div>
-            <button style={{ ...S.primaryBtn, opacity: !name.trim() || !email.trim() ? 0.5 : 1 }}
-              onClick={handleCreateStep1} disabled={!name.trim() || !email.trim()}>
-              Continue →
+            <button style={{ ...S.btn, opacity: !name.trim() || !phone.trim() || loading ? 0.5 : 1 }}
+              disabled={!name.trim() || !phone.trim() || loading} onClick={() => setStep('pin')}>
+              {loading ? 'Please wait…' : 'Continue →'}
             </button>
-            <div style={S.privacyNote}>🔒 Your data never leaves this device</div>
+            {authError && <div style={S.err}>{authError}</div>}
+            <div style={S.hint}>Already have an account? <button style={S.link} onClick={switchToLogin}>Log in</button></div>
           </>
         )}
 
-        {/* CREATE STEP 2 - PIN */}
-        {screen === 'create-2' && (
+        {/* ── SIGNUP: set pin ── */}
+        {mode === 'signup' && step === 'pin' && (
           <>
             <div style={S.title}>Set Your PIN</div>
-            <p style={S.subtitle}>Choose a 4–6 digit PIN to protect your financial data</p>
-            <div style={S.fields}>
-              <div style={S.field}>
-                <label style={S.label}>Create PIN (4–6 digits)</label>
-                <input style={S.pinInput} type="password" inputMode="numeric" placeholder="••••" value={pin}
-                  onChange={handlePinInput(setPin, () => setPinError(''))} maxLength={6} autoFocus />
-              </div>
-              <div style={S.field}>
-                <label style={S.label}>Confirm PIN</label>
-                <input style={S.pinInput} type="password" inputMode="numeric" placeholder="••••" value={confirmPin}
-                  onChange={handlePinInput(setConfirmPin, () => setPinError(''))} maxLength={6}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateFinish()} />
-              </div>
-              {pinError && <div style={S.errorMsg}>{pinError}</div>}
-            </div>
-            <div style={S.btnRow}>
-              <button style={S.backBtn} onClick={() => setScreen('create-1')}>← Back</button>
-              <button style={{ ...S.primaryBtn, flex: 1, opacity: !pin || !confirmPin ? 0.5 : 1 }}
-                onClick={handleCreateFinish} disabled={!pin || !confirmPin}>
-                Create Account →
-              </button>
-            </div>
-            <div style={S.pinHint}>Write your PIN down somewhere safe — it cannot be recovered.</div>
+            <p style={S.sub}>Choose a {PIN_LENGTH}-digit PIN</p>
+            <PinInput value={pin} onChange={v => { setPin(v); setSignupErr(''); }} onComplete={handleSignupPinComplete} error={false} autoFocus />
+            <button style={S.backLink} onClick={() => { setPin(''); setStep('info'); }}>← Back</button>
           </>
         )}
+
+        {/* ── SIGNUP: confirm pin ── */}
+        {mode === 'signup' && step === 'confirm' && (
+          <>
+            <div style={S.title}>Confirm PIN</div>
+            <p style={S.sub}>Re-enter your {PIN_LENGTH}-digit PIN</p>
+            <PinInput value={confirm} onChange={v => { setConfirm(v); setSignupErr(''); }} onComplete={handleConfirmComplete} error={!!signupErr} autoFocus />
+            {signupErr && <div style={S.err}>{signupErr}</div>}
+            <button style={S.backLink} onClick={() => { setConfirm(''); setPin(''); setStep('pin'); }}>← Back</button>
+          </>
+        )}
+
       </div>
     </div>
   );
 };
 
 const S: Record<string, React.CSSProperties> = {
-  overlay: { position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  bg: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.08) 0%, transparent 60%), #0A1628' },
-  card: { position: 'relative', background: '#0F1F3D', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 20, padding: '40px 36px', width: '100%', maxWidth: 420, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' },
-  logoRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 },
-  logoMark: { width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(145deg, #C9A84C, #E8D08A)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  logoSymbol: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 800, color: '#0A1628' },
-  logoName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700, color: '#E2C47A' },
-  logoTagline: { fontSize: 9, color: '#3D5070', letterSpacing: '0.14em' },
-  title: { fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 700, color: '#F0EDE4', marginBottom: 8 },
-  subtitle: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.6, marginBottom: 28 },
-  fields: { display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 },
-  field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em' },
-  input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#F0EDE4', fontSize: 16, fontFamily: 'Karla, sans-serif', width: '100%' },
-  pinWrap: { marginBottom: 16 },
-  pinInput: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 10, padding: '14px 16px', color: '#F0EDE4', fontSize: 24, fontFamily: 'Karla, sans-serif', letterSpacing: 8, textAlign: 'center' },
-  errorMsg: { fontSize: 13, color: '#F87171', background: 'rgba(248,113,113,0.08)', padding: '10px 14px', borderRadius: 8, marginBottom: 12 },
-  primaryBtn: { width: '100%', padding: '14px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 12, fontWeight: 700, fontSize: 15, fontFamily: 'Karla, sans-serif', transition: '0.2s ease' },
-  forgotHint: { fontSize: 12, color: '#3D5070', textAlign: 'center', marginTop: 20, lineHeight: 1.6 },
-  linkBtn: { background: 'transparent', border: 'none', color: '#C9A84C', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer', textDecoration: 'underline', padding: 0 },
-  privacyNote: { fontSize: 12, color: '#3D5070', textAlign: 'center', marginTop: 16 },
-  btnRow: { display: 'flex', gap: 10, marginBottom: 0 },
-  backBtn: { padding: '14px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#5A6B8A', fontSize: 14, fontFamily: 'Karla, sans-serif' },
-  pinHint: { fontSize: 12, color: '#3D5070', textAlign: 'center', marginTop: 16 },
+  overlay:  { position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  bg:       { position: 'absolute', inset: 0, background: 'var(--bg-page)' },
+  card:     { position: 'relative', background: 'var(--bg-card)', border: '1px solid var(--border-acc)', borderRadius: 20, padding: '36px 32px', width: '100%', maxWidth: 380, boxShadow: 'var(--shadow-lg)' },
+  logoRow:  { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 },
+  logoMark: { width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(145deg, var(--gold), var(--gold-l))', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  logoSym:  { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 800, color: '#0A1628' },
+  logoName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700, color: 'var(--gold-l)' },
+  logoTag:  { fontSize: 9, color: 'var(--text-3)', letterSpacing: '0.14em' },
+  title:    { fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 },
+  sub:      { fontSize: 13, color: 'var(--text-2)', marginBottom: 20 },
+  fields:   { display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 },
+  field:    { display: 'flex', flexDirection: 'column', gap: 5 },
+  label:    { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em' },
+  input:    { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px', color: 'var(--text-1)', fontSize: 15, fontFamily: 'Karla, sans-serif', outline: 'none' },
+  btn:      { width: '100%', padding: '13px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 12, fontWeight: 700, fontSize: 15, fontFamily: 'Karla, sans-serif', border: 'none', cursor: 'pointer' },
+  err:      { fontSize: 13, color: 'var(--red)', background: 'var(--red-dim)', padding: '9px 12px', borderRadius: 8, marginTop: 4, textAlign: 'center' },
+  hint:     { fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginTop: 16, lineHeight: 1.6 },
+  link:     { background: 'transparent', border: 'none', color: 'var(--gold)', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer', textDecoration: 'underline', padding: 0 },
+  backLink: { background: 'transparent', border: 'none', color: 'var(--text-3)', fontSize: 13, fontFamily: 'Karla, sans-serif', cursor: 'pointer', display: 'block', margin: '8px auto 0', padding: '6px 12px' },
 };

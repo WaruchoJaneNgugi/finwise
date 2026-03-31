@@ -1,23 +1,29 @@
 import React, { useState } from 'react';
-import type { InvestmentAdvice, FinancialProfile } from '../types';
+import type { InvestmentAdvice, FinancialProfile, MonthlyBreakdown } from '../types';
 import { formatCurrency } from '../utils/expenses';
 import { getInvestmentAdvice } from '../utils/calculations';
 
 interface AdvisorProps {
   profile: FinancialProfile;
   onUpdateIncome: (income: number) => void;
+  billsTotal?: number;
+  goalsTotal?: number;
+  breakdown?: MonthlyBreakdown;
 }
 
-export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome }) => {
+export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome, billsTotal = 0, goalsTotal = 0, breakdown }) => {
   const [customIncome, setCustomIncome] = useState(String(profile.monthlyIncome || ''));
   const income = profile.monthlyIncome;
   const advice: InvestmentAdvice = getInvestmentAdvice(income);
 
+  const actualSpend = breakdown?.totalExpenses ?? 0;
+  const actualSavings = income > 0 ? Math.max(0, income - actualSpend) : 0;
+
   const allocationItems = [
-    { label: 'Living Expenses', amount: advice.living, pct: income > 0 ? Math.round((advice.living / income) * 100) : 0, color: '#60A5FA', icon: '🏠', desc: 'Housing, food, transport, utilities, medical' },
-    { label: 'Emergency Fund', amount: advice.emergencyFund, pct: income > 0 ? Math.round((advice.emergencyFund / income) * 100) : 0, color: '#F87171', icon: '🛡️', desc: 'Unexpected events, job loss, medical emergencies' },
-    { label: 'Savings', amount: advice.savings, pct: income > 0 ? Math.round((advice.savings / income) * 100) : 0, color: '#3DD68C', icon: '💰', desc: 'Short-term goals, school fees, purchases' },
-    { label: 'Investments', amount: advice.investment, pct: income > 0 ? Math.round((advice.investment / income) * 100) : 0, color: '#C9A84C', icon: '📈', desc: 'MMFs, SACCOs, NSE stocks, bonds' },
+    { label: 'Living Expenses', amount: advice.living, pct: income > 0 ? Math.round((advice.living / income) * 100) : 0, color: 'var(--blue)', icon: '🏠', desc: 'Housing, food, transport, utilities, medical' },
+    { label: 'Emergency Fund', amount: advice.emergencyFund, pct: income > 0 ? Math.round((advice.emergencyFund / income) * 100) : 0, color: 'var(--red)', icon: '🛡️', desc: 'Unexpected events, job loss, medical emergencies' },
+    { label: 'Savings', amount: advice.savings, pct: income > 0 ? Math.round((advice.savings / income) * 100) : 0, color: 'var(--green)', icon: '💰', desc: 'Short-term goals, school fees, purchases' },
+    { label: 'Investments', amount: advice.investment, pct: income > 0 ? Math.round((advice.investment / income) * 100) : 0, color: 'var(--gold)', icon: '📈', desc: 'MMFs, SACCOs, NSE stocks, bonds' },
   ];
 
   const incomeLabel =
@@ -88,6 +94,29 @@ export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome }) => 
             </div>
           </div>
 
+          {/* Actual vs Recommended */}
+          {breakdown && income > 0 && (
+            <div style={S.allocationCard}>
+              <div style={S.cardTitle}>📊 Actual vs Recommended</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  { label: 'Total Spending', actual: actualSpend, recommended: advice.living + advice.emergencyFund, color: actualSpend > advice.living + advice.emergencyFund ? 'var(--red)' : 'var(--green)' },
+                  { label: 'Bills', actual: billsTotal, recommended: Math.round(income * 0.3), color: billsTotal > income * 0.3 ? 'var(--red)' : 'var(--green)' },
+                  { label: 'Goals Contributed', actual: goalsTotal, recommended: advice.savings, color: goalsTotal >= advice.savings ? 'var(--green)' : 'var(--amber)' },
+                  { label: 'Remaining / Savings', actual: actualSavings, recommended: advice.savings + advice.investment, color: actualSavings >= advice.savings ? 'var(--green)' : 'var(--red)' },
+                ].map(row => (
+                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-surface)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 500 }}>{row.label}</div>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-3)' }}>Rec: {formatCurrency(row.recommended, 'KES')}</div>
+                      <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 16, fontWeight: 700, color: row.color }}>{formatCurrency(row.actual, 'KES')}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Emergency fund */}
           <div style={S.emergencyCard}>
             <div style={S.emergencyHeader}>
@@ -95,21 +124,21 @@ export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome }) => 
               <div>
                 <div style={S.emergencyTitle}>Emergency Fund Goal</div>
                 <p style={S.emergencyDesc}>
-                  You should build an emergency fund covering <strong style={{ color: '#F87171' }}>3–6 months</strong> of living expenses.
+                  You should build an emergency fund covering <strong style={{ color: 'var(--red)' }}>3–6 months</strong> of living expenses.
                   At your income, that means saving:
                 </p>
               </div>
             </div>
             <div className="emergency-stats">
               {[
-                { label: 'Monthly Contribution', val: advice.emergencyFund, color: '#F87171' },
+                { label: 'Monthly Contribution', val: advice.emergencyFund, color: 'var(--red)' },
                 { label: '6-Month Target', val: advice.emergencyFund * 6, color: undefined },
-                { label: '12-Month Target', val: advice.emergencyFund * 12, color: '#3DD68C' },
+                { label: '12-Month Target', val: advice.emergencyFund * 12, color: 'var(--green)' },
                 { label: '2-Year Target', val: advice.emergencyFund * 24, color: undefined },
               ].map((stat) => (
                 <div key={stat.label} style={S.emergencyStat}>
                   <div style={S.eStatLabel}>{stat.label}</div>
-                  <div style={{ ...S.eStatVal, color: stat.color || '#F0EDE4' }}>{formatCurrency(stat.val, 'KES')}</div>
+                  <div style={{ ...S.eStatVal, color: stat.color || 'var(--text-1)' }}>{formatCurrency(stat.val, 'KES')}</div>
                 </div>
               ))}
             </div>
@@ -166,48 +195,48 @@ const HABITS = [
 
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
-  cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: '#F0EDE4', marginBottom: 16 },
-  incomeCard: { background: 'linear-gradient(135deg, #132040 0%, #1A2E50 100%)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 14, padding: 'clamp(16px, 3vw, 28px)' },
+  cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: 'var(--text-1)', marginBottom: 16 },
+  incomeCard: { background: 'var(--bg-elevated)', border: '1px solid var(--border-acc)', borderRadius: 14, padding: 'clamp(16px, 3vw, 28px)' },
   incomeLeft: { flex: 1, minWidth: 0 },
-  incomeDesc: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.6, marginBottom: 16 },
-  inputWrap: { display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 9, overflow: 'hidden' },
-  currencyTag: { padding: '0 12px', color: '#C9A84C', fontSize: 13, fontWeight: 600, background: 'rgba(201,168,76,0.08)', borderRight: '1px solid rgba(201,168,76,0.2)', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' },
-  incomeInput: { background: 'transparent', border: 'none', padding: '12px 14px', color: '#F0EDE4', fontSize: 16, fontFamily: 'Karla, sans-serif', width: '100%', minWidth: 0 },
-  applyBtn: { padding: '12px 22px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 },
-  tierLabel: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  tierName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 600, color: '#C9A84C', marginTop: 6 },
-  tierIncome: { fontSize: 13, color: '#9BAAC4', marginTop: 4 },
-  allocationCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '26px 28px' },
-  allocItem: { display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'rgba(255,255,255,0.02)', borderRadius: 10 },
+  incomeDesc: { fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 16 },
+  inputWrap: { display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', border: '1px solid var(--border-acc)', borderRadius: 9, overflow: 'hidden' },
+  currencyTag: { padding: '0 12px', color: 'var(--gold)', fontSize: 13, fontWeight: 600, background: 'var(--gold-dim)', borderRight: '1px solid var(--border-acc)', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' },
+  incomeInput: { background: 'transparent', border: 'none', padding: '12px 14px', color: 'var(--text-1)', fontSize: 16, fontFamily: 'Karla, sans-serif', width: '100%', minWidth: 0 },
+  applyBtn: { padding: '12px 22px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 },
+  tierLabel: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  tierName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 600, color: 'var(--gold)', marginTop: 6 },
+  tierIncome: { fontSize: 13, color: 'var(--text-2)', marginTop: 4 },
+  allocationCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '26px 28px' },
+  allocItem: { display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'var(--bg-surface)', borderRadius: 10 },
   allocIcon: { width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 },
   allocInfo: { flex: 1, minWidth: 0 },
-  allocLabel: { fontSize: 14, color: '#F0EDE4', fontWeight: 600 },
-  allocDesc: { fontSize: 12, color: '#5A6B8A', marginTop: 2, lineHeight: 1.4 },
+  allocLabel: { fontSize: 14, color: 'var(--text-1)', fontWeight: 600 },
+  allocDesc: { fontSize: 12, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.4 },
   allocRight: { textAlign: 'right', flexShrink: 0, minWidth: 100 },
   allocAmount: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 700 },
-  allocPct: { fontSize: 12, color: '#5A6B8A' },
-  allocBar: { width: 90, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden', marginTop: 4 },
+  allocPct: { fontSize: 12, color: 'var(--text-3)' },
+  allocBar: { width: 90, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden', marginTop: 4 },
   allocBarFill: { height: '100%', borderRadius: 2, transition: 'width 0.6s ease' },
-  emergencyCard: { background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 14, padding: '24px 28px' },
+  emergencyCard: { background: 'var(--red-dim)', border: '1px solid var(--red-b)', borderRadius: 14, padding: '24px 28px' },
   emergencyHeader: { display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap' },
   emergencyIcon: { fontSize: 32, flexShrink: 0 },
-  emergencyTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4', marginBottom: 8 },
-  emergencyDesc: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.6 },
-  emergencyStat: { background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '14px 16px', border: '1px solid rgba(255,255,255,0.05)' },
-  eStatLabel: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
+  emergencyTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: 'var(--text-1)', marginBottom: 8 },
+  emergencyDesc: { fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 },
+  emergencyStat: { background: 'var(--bg-surface)', borderRadius: 10, padding: '14px 16px', border: '1px solid var(--border)' },
+  eStatLabel: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
   eStatVal: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700 },
-  tipsCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '26px 28px' },
+  tipsCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '26px 28px' },
   tipsList: { display: 'flex', flexDirection: 'column', gap: 12 },
   tipItem: { display: 'flex', gap: 14, alignItems: 'flex-start' },
-  tipNumber: { width: 28, height: 28, borderRadius: '50%', background: 'rgba(201,168,76,0.12)', color: '#C9A84C', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'Cormorant Garamond, serif' },
-  tipText: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.6, paddingTop: 4 },
-  habitsCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '26px 28px' },
-  habitItem: { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px' },
+  tipNumber: { width: 28, height: 28, borderRadius: '50%', background: 'var(--gold-dim)', color: 'var(--gold)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'Cormorant Garamond, serif' },
+  tipText: { fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6, paddingTop: 4 },
+  habitsCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '26px 28px' },
+  habitItem: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 18px' },
   habitEmoji: { fontSize: 26, marginBottom: 10 },
-  habitTitle: { fontSize: 14, color: '#F0EDE4', fontWeight: 600, marginBottom: 6 },
-  habitBody: { fontSize: 13, color: '#5A6B8A', lineHeight: 1.5 },
-  promptCard: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 24px', background: '#132040', border: '1px dashed rgba(201,168,76,0.2)', borderRadius: 14, textAlign: 'center' },
+  habitTitle: { fontSize: 14, color: 'var(--text-1)', fontWeight: 600, marginBottom: 6 },
+  habitBody: { fontSize: 13, color: 'var(--text-3)', lineHeight: 1.5 },
+  promptCard: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 24px', background: 'var(--bg-card)', border: '1px dashed var(--border-acc)', borderRadius: 14, textAlign: 'center' },
   promptIcon: { fontSize: 48, marginBottom: 16 },
-  promptTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 600, color: '#C9A84C', marginBottom: 12 },
-  promptText: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.7, maxWidth: 420 },
+  promptTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 26, fontWeight: 600, color: 'var(--gold)', marginBottom: 12 },
+  promptText: { fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, maxWidth: 420 },
 };

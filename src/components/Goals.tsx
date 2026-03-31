@@ -56,10 +56,10 @@ export const Goals: React.FC<GoalsProps> = ({
       {/* Summary bar */}
       <div className="goals-summary-bar">
         {[
-          { label: 'Active Goals',     val: activeGoals.length,                         unit: '',    color: '#60A5FA' },
-          { label: 'Total Targeted',   val: formatCurrency(totalTargeted, currency),     unit: '',    color: '#F0EDE4' },
-          { label: 'Total Saved',      val: formatCurrency(totalSaved, currency),        unit: '',    color: '#3DD68C' },
-          { label: 'Goals Completed',  val: completedGoals.length,                       unit: '',    color: '#C9A84C' },
+          { label: 'Active Goals',     val: activeGoals.length,                         unit: '',    color: 'var(--blue)' },
+          { label: 'Total Targeted',   val: formatCurrency(totalTargeted, currency),     unit: '',    color: 'var(--text-1)' },
+          { label: 'Total Saved',      val: formatCurrency(totalSaved, currency),        unit: '',    color: 'var(--green)' },
+          { label: 'Goals Completed',  val: completedGoals.length,                       unit: '',    color: 'var(--gold)' },
         ].map((s) => (
           <div key={s.label} style={S.summaryItem}>
             <div style={S.summaryLabel}>{s.label}</div>
@@ -77,12 +77,12 @@ export const Goals: React.FC<GoalsProps> = ({
           </div>
           <div style={S.overallRight}>
             <svg width="72" height="72" viewBox="0 0 72 72">
-              <circle cx="36" cy="36" r="28" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
-              <circle cx="36" cy="36" r="28" fill="none" stroke="#C9A84C" strokeWidth="8"
+              <circle cx="36" cy="36" r="28" fill="none" stroke="var(--border)" strokeWidth="8" />
+              <circle cx="36" cy="36" r="28" fill="none" stroke="var(--gold)" strokeWidth="8"
                 strokeDasharray={`${(overallPct / 100) * 176} 176`}
                 strokeLinecap="round" transform="rotate(-90 36 36)"
                 style={{ filter: 'drop-shadow(0 0 4px rgba(201,168,76,0.5))' }} />
-              <text x="36" y="40" textAnchor="middle" fill="#C9A84C" fontSize="13" fontFamily="Cormorant Garamond" fontWeight="700">{overallPct}%</text>
+              <text x="36" y="40" textAnchor="middle" fill="var(--gold)" fontSize="13" fontFamily="Cormorant Garamond" fontWeight="700">{overallPct}%</text>
             </svg>
           </div>
         </div>
@@ -157,8 +157,8 @@ export const Goals: React.FC<GoalsProps> = ({
                     <div style={S.goalBadgeWrap}>
                       {status !== 'no-deadline' && (
                         <span style={{ ...S.statusBadge,
-                          color: status === 'on-track' ? '#3DD68C' : '#F87171',
-                          background: status === 'on-track' ? 'rgba(61,214,140,0.1)' : 'rgba(248,113,113,0.1)',
+                          color: status === 'on-track' ? 'var(--green)' : 'var(--red)',
+                          background: status === 'on-track' ? 'var(--green-dim)' : 'var(--red-dim)',
                         }}>
                           {status === 'on-track' ? '✓ On Track' : '⚠ Behind'}
                         </span>
@@ -249,58 +249,58 @@ export const Goals: React.FC<GoalsProps> = ({
 
 const S: Record<string, React.CSSProperties> = {
   container: { display: 'flex', flexDirection: 'column', gap: 20 },
-  cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: '#F0EDE4', marginBottom: 16 },
-  summaryBar: {}, /* now handled by .goals-summary-bar CSS class */
-  summaryItem: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '16px 18px' },
-  summaryLabel: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
+  cardTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 600, color: 'var(--text-1)', marginBottom: 16 },
+  summaryBar: {},
+  summaryItem: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' },
+  summaryLabel: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
   summaryVal: { fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700 },
-  overallCard: { background: 'linear-gradient(135deg, #132040, #1A2E50)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 14, padding: '22px 26px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  overallCard: { background: 'var(--bg-elevated)', border: '1px solid var(--border-acc)', borderRadius: 14, padding: '22px 26px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   overallLeft: { flex: 1 },
   overallRight: { flexShrink: 0 },
-  overallAmt: { fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 700, color: '#C9A84C' },
-  overallOf: { fontSize: 16, color: '#5A6B8A' },
-  formCard: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 22px' },
+  overallAmt: { fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 700, color: 'var(--gold)' },
+  overallOf: { fontSize: 16, color: 'var(--text-3)' },
+  formCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 22px' },
   formTitleRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 },
-  successTag: { fontSize: 12, color: '#3DD68C', background: 'rgba(61,214,140,0.12)', padding: '3px 10px', borderRadius: 4, fontWeight: 600 },
+  successTag: { fontSize: 12, color: 'var(--green)', background: 'var(--green-dim)', padding: '3px 10px', borderRadius: 4, fontWeight: 600 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.07em' },
-  input: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif' },
-  select: { background: '#0F1F3D', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 14px', color: '#F0EDE4', fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  label: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em' },
+  input: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif' },
+  select: { background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif' },
   formBottom: { display: 'flex', gap: 12, marginTop: 14, alignItems: 'center' },
-  addBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 },
-  sectionTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 600, color: '#9BAAC4', marginBottom: 12 },
+  addBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 },
+  sectionTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 600, color: 'var(--text-2)', marginBottom: 12 },
   goalGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 14 },
-  goalCard: { background: '#132040', border: '1px solid', borderRadius: 14, padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 },
+  goalCard: { background: 'var(--bg-card)', border: '1px solid', borderRadius: 14, padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 },
   goalHeader: { display: 'flex', alignItems: 'center', gap: 12 },
   goalIcon: { width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 },
   goalInfo: { flex: 1, minWidth: 0 },
-  goalName: { fontSize: 15, fontWeight: 600, color: '#F0EDE4' },
+  goalName: { fontSize: 15, fontWeight: 600, color: 'var(--text-1)' },
   goalCat: { fontSize: 12, marginTop: 2 },
   goalBadgeWrap: { flexShrink: 0 },
   statusBadge: { fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20, letterSpacing: '0.06em' },
   goalAmounts: { display: 'flex', alignItems: 'center', gap: 12 },
-  amtLabel: { fontSize: 11, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 },
-  amtVal: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 700, color: '#F0EDE4' },
-  amtDivider: { color: '#2A3B58', fontSize: 20, alignSelf: 'flex-end', paddingBottom: 2 },
-  amtPct: { marginLeft: 'auto', fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 700, color: '#5A6B8A' },
-  progressTrack: { height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' },
+  amtLabel: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 },
+  amtVal: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 700, color: 'var(--text-1)' },
+  amtDivider: { color: 'var(--text-3)', fontSize: 20, alignSelf: 'flex-end', paddingBottom: 2 },
+  amtPct: { marginLeft: 'auto', fontFamily: 'Cormorant Garamond, serif', fontSize: 28, fontWeight: 700, color: 'var(--text-3)' },
+  progressTrack: { height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3, transition: 'width 0.6s ease' },
-  goalMeta: { display: 'flex', gap: 12, fontSize: 12, color: '#5A6B8A', flexWrap: 'wrap' },
+  goalMeta: { display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-3)', flexWrap: 'wrap' },
   contributeRow: { display: 'flex', gap: 8, alignItems: 'center' },
-  confirmBtn: { padding: '8px 16px', background: 'linear-gradient(135deg, #C9A84C, #E2C47A)', color: '#0A1628', borderRadius: 7, fontWeight: 700, fontSize: 13 },
-  cancelBtn: { padding: '8px 10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#5A6B8A', borderRadius: 7, fontSize: 13 },
+  confirmBtn: { padding: '8px 16px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 7, fontWeight: 700, fontSize: 13 },
+  cancelBtn: { padding: '8px 10px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-3)', borderRadius: 7, fontSize: 13 },
   goalActions: { display: 'flex', gap: 8 },
-  contributeBtn: { flex: 1, padding: '9px 0', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C', borderRadius: 8, fontWeight: 600, fontSize: 13 },
-  removeBtn: { padding: '9px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: '#2A3B58', borderRadius: 8, fontSize: 13 },
+  contributeBtn: { flex: 1, padding: '9px 0', background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', color: 'var(--gold)', borderRadius: 8, fontWeight: 600, fontSize: 13 },
+  removeBtn: { padding: '9px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-3)', borderRadius: 8, fontSize: 13 },
   completedList: { display: 'flex', flexDirection: 'column', gap: 8 },
-  completedItem: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', background: 'rgba(61,214,140,0.04)', border: '1px solid rgba(61,214,140,0.12)', borderRadius: 10 },
+  completedItem: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', background: 'var(--green-dim)', border: '1px solid var(--green-b)', borderRadius: 10 },
   completedIcon: { fontSize: 22, flexShrink: 0 },
   completedInfo: { flex: 1 },
-  completedName: { fontSize: 14, color: '#F0EDE4', fontWeight: 500 },
-  completedAmt: { fontSize: 12, color: '#5A6B8A', marginTop: 2 },
-  completedBadge: { fontSize: 11, color: '#3DD68C', background: 'rgba(61,214,140,0.1)', padding: '3px 10px', borderRadius: 20, fontWeight: 700 },
-  emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 24px', background: '#132040', border: '1px dashed rgba(201,168,76,0.2)', borderRadius: 14, textAlign: 'center' },
+  completedName: { fontSize: 14, color: 'var(--text-1)', fontWeight: 500 },
+  completedAmt: { fontSize: 12, color: 'var(--text-3)', marginTop: 2 },
+  completedBadge: { fontSize: 11, color: 'var(--green)', background: 'var(--green-dim)', padding: '3px 10px', borderRadius: 20, fontWeight: 700 },
+  emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 24px', background: 'var(--bg-card)', border: '1px dashed var(--border-acc)', borderRadius: 14, textAlign: 'center' },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 600, color: '#C9A84C', marginBottom: 10 },
-  emptyText: { fontSize: 14, color: '#9BAAC4', lineHeight: 1.7, maxWidth: 400 },
+  emptyTitle: { fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 600, color: 'var(--gold)', marginBottom: 10 },
+  emptyText: { fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, maxWidth: 400 },
 };

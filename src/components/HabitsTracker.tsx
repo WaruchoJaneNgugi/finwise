@@ -30,12 +30,12 @@ export const HabitsTracker: React.FC<HabitsTrackerProps> = ({
       <div style={S.compactContainer}>
         <div style={S.compactHeader}>
           <span style={S.compactTitle}>Today's Habits</span>
-          <span style={{ fontSize: 12, color: completedCount === habits.length && habits.length > 0 ? '#3DD68C' : '#5A6B8A' }}>
+          <span style={{ fontSize: 12, color: completedCount === habits.length && habits.length > 0 ? 'var(--green)' : 'var(--text-3)' }}>
             {completedCount}/{habits.length} done
           </span>
         </div>
         <div style={S.compactBar}>
-          <div style={{ ...S.compactBarFill, width: `${completionPct}%`, background: completionPct === 100 ? '#3DD68C' : '#C9A84C' }} />
+          <div style={{ ...S.compactBarFill, width: `${completionPct}%`, background: completionPct === 100 ? 'var(--green)' : 'var(--gold)' }} />
         </div>
         <div style={S.pillsWrap}>
           {habits.map((h) => (
@@ -61,12 +61,12 @@ export const HabitsTracker: React.FC<HabitsTrackerProps> = ({
           <svg width="60" height="60" viewBox="0 0 60 60">
             <circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
             <circle cx="30" cy="30" r="24" fill="none"
-              stroke={completionPct === 100 ? '#3DD68C' : '#C9A84C'} strokeWidth="5"
+              stroke={completionPct === 100 ? 'var(--green)' : 'var(--gold)'} strokeWidth="5"
               strokeDasharray={`${(completionPct / 100) * 150.8} 150.8`}
               strokeLinecap="round" transform="rotate(-90 30 30)"
-              style={{ transition: 'stroke-dasharray 0.5s ease', filter: `drop-shadow(0 0 4px ${completionPct === 100 ? '#3DD68C' : '#C9A84C'})` }}
+              style={{ transition: 'stroke-dasharray 0.5s ease', filter: `drop-shadow(0 0 4px ${completionPct === 100 ? 'var(--green)' : 'var(--gold)'})` }}
             />
-            <text x="30" y="34" textAnchor="middle" fill={completionPct === 100 ? '#3DD68C' : '#C9A84C'}
+            <text x="30" y="34" textAnchor="middle" fill={completionPct === 100 ? 'var(--green)' : 'var(--gold)'}
               fontSize="14" fontFamily="Cormorant Garamond" fontWeight="700">{completionPct}%</text>
           </svg>
           <div style={S.scoreLabel}>{completedCount}/{habits.length} done</div>
@@ -95,7 +95,7 @@ export const HabitsTracker: React.FC<HabitsTrackerProps> = ({
               style={{ ...S.checkbox, ...(h.done ? S.checkboxDone : {}) }}>
               {h.done && '✓'}
             </button>
-            <span style={{ ...S.habitText, textDecoration: h.done ? 'line-through' : 'none', color: h.done ? '#3D5070' : '#F0EDE4' }}>
+            <span style={{ ...S.habitText, textDecoration: h.done ? 'line-through' : 'none', color: h.done ? 'var(--text-3)' : 'var(--text-1)' }}>
               {h.text}
             </span>
             {h.done && <span style={S.doneBadge}>Done ✓</span>}
@@ -103,7 +103,7 @@ export const HabitsTracker: React.FC<HabitsTrackerProps> = ({
           </div>
         ))}
         {habits.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 0', color: '#3D5070', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-3)', fontSize: 13 }}>
             No habits yet. Add your first financial habit above.
           </div>
         )}
@@ -119,31 +119,31 @@ export const HabitsTracker: React.FC<HabitsTrackerProps> = ({
 };
 
 const S: Record<string, React.CSSProperties> = {
-  container: { background: '#132040', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '24px 26px', display: 'flex', flexDirection: 'column', gap: 18 },
+  container: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '24px 26px', display: 'flex', flexDirection: 'column', gap: 18 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  title: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: '#F0EDE4', margin: 0 },
-  sub: { fontSize: 13, color: '#9BAAC4', marginTop: 4 },
+  title: { fontFamily: 'Cormorant Garamond, serif', fontSize: 22, fontWeight: 600, color: 'var(--text-1)', margin: 0 },
+  sub: { fontSize: 13, color: 'var(--text-2)', marginTop: 4 },
   scoreCircle: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
-  scoreLabel: { fontSize: 11, color: '#5A6B8A', textAlign: 'center' },
+  scoreLabel: { fontSize: 11, color: 'var(--text-3)', textAlign: 'center' },
   addRow: { display: 'flex', gap: 10, alignItems: 'center' },
-  input: { flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '10px 14px', color: '#F0EDE4', fontSize: 13, fontFamily: 'Karla, sans-serif', outline: 'none' },
-  addBtn: { padding: '10px 18px', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 9, color: '#C9A84C', fontSize: 13, fontFamily: 'Karla, sans-serif', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
-  resetBtn: { padding: '10px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, color: '#5A6B8A', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
+  input: { flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 9, padding: '10px 14px', color: 'var(--text-1)', fontSize: 13, fontFamily: 'Karla, sans-serif', outline: 'none' },
+  addBtn: { padding: '10px 18px', background: 'var(--gold-dim)', border: '1px solid var(--border-acc)', borderRadius: 9, color: 'var(--gold)', fontSize: 13, fontFamily: 'Karla, sans-serif', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' },
+  resetBtn: { padding: '10px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 9, color: 'var(--text-3)', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer' },
   list: { display: 'flex', flexDirection: 'column' },
   habitItem: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0' },
-  checkbox: { width: 24, height: 24, borderRadius: 7, border: '1.5px solid #3D5070', background: 'transparent', cursor: 'pointer', color: '#0A1628', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: '0.15s' },
-  checkboxDone: { borderColor: '#3DD68C', background: '#3DD68C' },
+  checkbox: { width: 24, height: 24, borderRadius: 7, border: '1.5px solid var(--text-3)', background: 'transparent', cursor: 'pointer', color: '#0A1628', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: '0.15s' },
+  checkboxDone: { borderColor: 'var(--green)', background: 'var(--green)' },
   habitText: { flex: 1, fontSize: 14, lineHeight: 1.4, transition: '0.2s' },
-  doneBadge: { fontSize: 10, color: '#3DD68C', background: 'rgba(61,214,140,0.1)', padding: '3px 9px', borderRadius: 20, whiteSpace: 'nowrap' },
-  removeBtn: { background: 'transparent', border: 'none', color: '#3D5070', fontSize: 14, cursor: 'pointer', padding: '0 4px', lineHeight: 1 },
-  completeBanner: { padding: '12px 16px', background: 'rgba(61,214,140,0.1)', border: '1px solid rgba(61,214,140,0.25)', borderRadius: 10, fontSize: 14, color: '#3DD68C', textAlign: 'center', fontWeight: 600 },
+  doneBadge: { fontSize: 10, color: 'var(--green)', background: 'var(--green-dim)', padding: '3px 9px', borderRadius: 20, whiteSpace: 'nowrap' },
+  removeBtn: { background: 'transparent', border: 'none', color: 'var(--text-3)', fontSize: 14, cursor: 'pointer', padding: '0 4px', lineHeight: 1 },
+  completeBanner: { padding: '12px 16px', background: 'var(--green-dim)', border: '1px solid var(--green-b)', borderRadius: 10, fontSize: 14, color: 'var(--green)', textAlign: 'center', fontWeight: 600 },
   // Compact mode
   compactContainer: { display: 'flex', flexDirection: 'column', gap: 10 },
   compactHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  compactTitle: { fontSize: 12, color: '#5A6B8A', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  compactBar: { height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' },
+  compactTitle: { fontSize: 12, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  compactBar: { height: 4, background: 'var(--border)', borderRadius: 99, overflow: 'hidden' },
   compactBarFill: { height: '100%', borderRadius: 99, transition: 'width 0.5s ease' },
   pillsWrap: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  pill: { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#9BAAC4', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer', transition: '0.15s', maxWidth: 200 },
-  pillDone: { borderColor: 'rgba(61,214,140,0.3)', background: 'rgba(61,214,140,0.08)', color: '#3DD68C' },
+  pill: { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-2)', fontSize: 12, fontFamily: 'Karla, sans-serif', cursor: 'pointer', transition: '0.15s', maxWidth: 200 },
+  pillDone: { borderColor: 'var(--green-b)', background: 'var(--green-dim)', color: 'var(--green)' },
 };

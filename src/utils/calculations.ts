@@ -9,7 +9,9 @@ import { CATEGORY_META } from './expenses';
 
 export const calculateMonthlyBreakdown = (
   expenses: Expense[],
-  income: number
+  income: number,
+  billsTotal = 0,
+  goalsTotal = 0,
 ): MonthlyBreakdown => {
   const byCategory = {} as Record<string, number>;
   let necessaryTotal = 0;
@@ -23,6 +25,9 @@ export const calculateMonthlyBreakdown = (
       unnecessaryTotal += exp.amount;
     }
   }
+
+  // Bills and goal contributions count as necessary spending
+  necessaryTotal += billsTotal + goalsTotal;
 
   const totalExpenses = necessaryTotal + unnecessaryTotal;
   return {

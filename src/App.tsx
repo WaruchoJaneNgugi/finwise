@@ -11,7 +11,7 @@ import { useHabits }        from './hooks/useHabits';
 import { useEmergencyFund } from './hooks/useEmergencyFund';
 import { useAlerts }        from './hooks/useAlerts';
 
-import { Header }           from './components/Header';
+import { Header, ThemeProvider } from './components/Header';
 import { Dashboard }        from './components/Dashboard';
 import { ExpenseForm, ExpenseList } from './components/ExpenseManager';
 import { Insights }         from './components/Insights';
@@ -40,20 +40,20 @@ const App: React.FC = () => {
 
   const auth = useAuth();
 
+  const goals   = useGoals();
+  const bills   = useBills();
+  const netWorth = useNetWorth();
+  const habits  = useHabits();
+
   const {
     monthlyExpenses, profile, breakdown, insight,
     warnings, addExpense, removeExpense, updateProfile,
-  } = useExpenses();
+  } = useExpenses(bills.monthlyTotal, goals.totalSaved);
 
   const {
     investments, summary: investmentSummary,
     addInvestment, removeInvestment, updateStatus,
   } = useInvestments();
-
-  const goals   = useGoals();
-  const bills   = useBills();
-  const netWorth = useNetWorth();
-  const habits  = useHabits();
 
   // Emergency fund uses monthly expenses as baseline for target calculation
   const emergencyFund = useEmergencyFund(breakdown.totalExpenses || profile.monthlyIncome * 0.6);
@@ -69,11 +69,14 @@ const App: React.FC = () => {
         hasProfile={!!auth.profile}
         onCreateProfile={auth.createProfile}
         onUnlock={auth.unlock}
+        loading={auth.loading}
+        error={auth.error}
       />
     );
   }
 
   return (
+    <ThemeProvider>
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header
         activeView={activeView}
@@ -82,6 +85,7 @@ const App: React.FC = () => {
         scoreLevel={insight.level}
         userName={auth.profile?.name}
         onLock={auth.lock}
+        onLogout={auth.deleteAccount}
         onExportExpenses={() => exportExpensesToCSV(monthlyExpenses)}
         onExportInvestments={() => exportInvestmentsToCSV(investments)}
         onExportNetWorth={() => exportNetWorthToCSV(netWorth.items)}
@@ -92,7 +96,13 @@ const App: React.FC = () => {
 
           {/* ── Advisor ─────────────────────────────────────────── */}
           {activeView === 'advisor' && (
-            <Advisor profile={profile} onUpdateIncome={handleUpdateIncome} />
+            <Advisor
+              profile={profile}
+              onUpdateIncome={handleUpdateIncome}
+              billsTotal={bills.monthlyTotal}
+              goalsTotal={goals.totalSaved}
+              breakdown={breakdown}
+            />
           )}
 
           {/* ── Dashboard ───────────────────────────────────────── */}
@@ -279,6 +289,7 @@ const App: React.FC = () => {
         <span style={{ color: '#C9A84C' }}>Your data stays on this device</span>
       </footer>
     </div>
+    </ThemeProvider>
   );
 };
 
