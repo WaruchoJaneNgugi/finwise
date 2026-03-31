@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './styles/globals.css';
-import type { AppView } from './types';
+import type { AppView, SubscriptionTier } from './types';
 import { useExpenses }      from './hooks/useExpenses';
 import { useInvestments }   from './hooks/useInvestments';
 import { useGoals }         from './hooks/useGoals';
@@ -27,7 +27,9 @@ import { NetWorth }         from './components/NetWorth';
 import { AIChat }           from './components/AIChat';
 import { EmergencyFund }    from './components/EmergencyFund';
 import { AlertsPanel }      from './components/AlertsPanel';
-// import { HabitsTracker }    from './components/HabitsTracker';
+import { LandingPage, PLAN_LOCKED_VIEWS } from './components/LandingPage';
+import { PaymentGate }      from './components/PaymentGate';
+import { UpgradePage }      from './components/UpgradePage';
 
 import {
   exportExpensesToCSV,
@@ -35,8 +37,20 @@ import {
   exportNetWorthToCSV,
 } from './hooks/exportUtils';
 
+const TIER_META: Record<SubscriptionTier, { name: string; price: number; color: string }> = {
+  free:     { name: 'Free',     price: 0,   color: '#9BAAC4' },
+  silver:   { name: 'Silver',   price: 299, color: '#C0C0C0' },
+  gold:     { name: 'Gold',     price: 599, color: '#C9A84C' },
+  platinum: { name: 'Platinum', price: 999, color: '#A78BFA' },
+};
+
+type AppStage = 'landing' | 'payment' | 'auth' | 'app';
+
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<AppView>('advisor');
+  const [stage, setStage] = useState<AppStage>('landing');
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTier>('free');
+  const [prefilledPhone, setPrefilledPhone] = useState('');
 
   const auth = useAuth();
 
@@ -55,29 +69,95 @@ const App: React.FC = () => {
     addInvestment, removeInvestment, updateStatus,
   } = useInvestments();
 
-  // Emergency fund uses monthly expenses as baseline for target calculation
   const emergencyFund = useEmergencyFund(breakdown.totalExpenses || profile.monthlyIncome * 0.6);
-
   const alerts = useAlerts();
 
   const handleUpdateIncome = (income: number) => updateProfile(income, profile.currency);
 
-  // Show auth gate if not unlocked
-  if (!auth.isUnlocked) {
+  // ── Stage: Landing ──────────────────────────────────────
+  if (!auth.isUnlocked && stage === 'landing') {
     return (
-      <AuthGate
-        hasProfile={!!auth.profile}
-        onCreateProfile={auth.createProfile}
-        onUnlock={auth.unlock}
-        loading={auth.loading}
-        error={auth.error}
-      />
+      <ThemeProvider>
+        <LandingPage
+          onSelectTier={(tier) => {
+            setSelectedTier(tier);
+            if (tier === 'free') setStage('auth');
+            else setStage('payment');
+          }}
+        />
+      </ThemeProvider>
     );
   }
+
+  // ── Stage: Payment ──────────────────────────────────────
+  if (!auth.isUnlocked && stage === 'payment') {
+    const meta = TIER_META[selectedTier];
+    return (
+      <ThemeProvider>
+        <PaymentGate
+          tierName={meta.name}
+          tierPrice={meta.price}
+          tierColor={meta.color}
+          onPaymentComplete={(phone) => { setPrefilledPhone(phone); setStage('auth'); }}
+          onBack={() => setStage('landing')}
+        />
+      </ThemeProvider>
+    );
+  }
+
+  // ── Stage: Auth ─────────────────────────────────────────
+  if (!auth.isUnlocked) {
+    return (
+      <ThemeProvider>
+        <AuthGate
+          hasProfile={!!auth.profile}
+          onCreateProfile={auth.createProfile}
+          onUnlock={auth.unlock}
+          loading={auth.loading}
+          error={auth.error}
+          prefilledPhone={prefilledPhone}
+          tier={selectedTier}
+        />
+      </ThemeProvider>
+    );
+  }
+
+  // ── Stage: App ──────────────────────────────────────────
+  const userTier: SubscriptionTier = auth.profile?.tier ?? 'free';
+  const lockedViews = PLAN_LOCKED_VIEWS[userTier] ?? [];
+  const isLocked = (view: AppView) => lockedViews.includes(view);
+
+  const UpgradeWall: React.FC<{ view: AppView }> = ({ view }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16, padding: 32 }}>
+      <div style={{ fontSize: 40 }}>🔒</div>
+      <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: 'var(--text-1)', fontWeight: 700 }}>
+        {view.charAt(0).toUpperCase() + view.slice(1)} is a premium feature
+      </div>
+      <div style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', maxWidth: 320 }}>
+        Upgrade your plan to unlock this and more features.
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--text-2)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 16px' }}>
+        Current plan: <strong style={{ color: TIER_META[userTier].color }}>{TIER_META[userTier].name}</strong>
+      </div>
+    </div>
+  );
 
   return (
     <ThemeProvider>
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+
+      {/* Payment overlay when upgrading from within the app */}
+      {stage === 'payment' && auth.isUnlocked && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500 }}>
+          <PaymentGate
+            tierName={TIER_META[selectedTier].name}
+            tierPrice={TIER_META[selectedTier].price}
+            tierColor={TIER_META[selectedTier].color}
+            onPaymentComplete={() => { setStage('app'); setActiveView('dashboard'); }}
+            onBack={() => setStage('app')}
+          />
+        </div>
+      )}
       <Header
         activeView={activeView}
         onNavigate={setActiveView}
@@ -89,6 +169,7 @@ const App: React.FC = () => {
         onExportExpenses={() => exportExpensesToCSV(monthlyExpenses)}
         onExportInvestments={() => exportInvestmentsToCSV(investments)}
         onExportNetWorth={() => exportNetWorthToCSV(netWorth.items)}
+        userTier={userTier}
       />
 
       <main className="main-content">
@@ -144,7 +225,7 @@ const App: React.FC = () => {
           )}
 
           {/* ── Investments ─────────────────────────────────────── */}
-          {activeView === 'investments' && (
+          {activeView === 'investments' && (isLocked('investments') ? <UpgradeWall view="investments" /> :
             <div className="animate-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button style={exportBtnStyle} onClick={() => exportInvestmentsToCSV(investments)}>
@@ -164,7 +245,7 @@ const App: React.FC = () => {
           )}
 
           {/* ── Goals ───────────────────────────────────────────── */}
-          {activeView === 'goals' && (
+          {activeView === 'goals' && (isLocked('goals') ? <UpgradeWall view="goals" /> :
             <Goals
               goals={goals.goals}
               activeGoals={goals.activeGoals}
@@ -180,7 +261,7 @@ const App: React.FC = () => {
           )}
 
           {/* ── Bills ───────────────────────────────────────────── */}
-          {activeView === 'bills' && (
+          {activeView === 'bills' && (isLocked('bills') ? <UpgradeWall view="bills" /> :
             <Bills
               bills={bills.bills}
               sortedBills={bills.sortedBills}
@@ -197,7 +278,7 @@ const App: React.FC = () => {
           )}
 
           {/* ── Net Worth ───────────────────────────────────────── */}
-          {activeView === 'networth' && (
+          {activeView === 'networth' && (isLocked('networth') ? <UpgradeWall view="networth" /> :
             <div className="animate-in">
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
                 <button style={exportBtnStyle} onClick={() => exportNetWorthToCSV(netWorth.items)}>
@@ -216,7 +297,7 @@ const App: React.FC = () => {
           )}
 
           {/* ── Emergency Fund ──────────────────────────────────── */}
-          {activeView === 'emergency' && (
+          {activeView === 'emergency' && (isLocked('emergency') ? <UpgradeWall view="emergency" /> :
             <EmergencyFund
               data={emergencyFund.data}
               targetAmount={emergencyFund.targetAmount}
@@ -233,12 +314,12 @@ const App: React.FC = () => {
           )}
 
           {/* ── Insights ────────────────────────────────────────── */}
-          {activeView === 'insights' && (
+          {activeView === 'insights' && (isLocked('insights') ? <UpgradeWall view="insights" /> :
             <Insights breakdown={breakdown} profile={profile} />
           )}
 
           {/* ── AI Chat ─────────────────────────────────────────── */}
-          {activeView === 'chat' && (
+          {activeView === 'chat' && (isLocked('chat') ? <UpgradeWall view="chat" /> :
             <AIChat
               profile={profile}
               breakdown={breakdown}
@@ -256,7 +337,7 @@ const App: React.FC = () => {
           )}
 
           {/* ── Alerts & SOS ────────────────────────────────────── */}
-          {activeView === 'alerts' && (
+          {activeView === 'alerts' && (isLocked('alerts') ? <UpgradeWall view="alerts" /> :
             <AlertsPanel
               contact={alerts.contact}
               log={alerts.log}
@@ -275,6 +356,17 @@ const App: React.FC = () => {
               onRecordAlert={alerts.recordAlert}
               onClearLog={alerts.clearLog}
               onNavigateToAdvisor={() => setActiveView('chat')}
+            />
+          )}
+
+          {/* ── Upgrade ─────────────────────────────────────────── */}
+          {activeView === 'upgrade' && (
+            <UpgradePage
+              currentTier={userTier}
+              onSelectPlan={(tier) => {
+                setSelectedTier(tier);
+                setStage('payment');
+              }}
             />
           )}
 

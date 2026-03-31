@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { UserProfile } from '../types';
+import type { UserProfile, SubscriptionTier } from '../types';
 
 const SESSION_KEY = 'finwise_session';
 const PROFILE_KEY = 'finwise_auth_profile';
@@ -26,11 +26,11 @@ export const useAuth = () => {
   // Use phone number (sanitized) as the Firestore document ID
   const phoneToId = (phone: string) => phone.replace(/\s+/g, '');
 
-  const createProfile = useCallback(async (name: string, phone: string, pin: string) => {
+  const createProfile = useCallback(async (name: string, phone: string, pin: string, tier: SubscriptionTier = 'free') => {
     setLoading(true);
     setError(null);
     try {
-      const p: UserProfile = { name, phone, pin: hashPin(pin), createdAt: new Date().toISOString() };
+      const p: UserProfile = { name, phone, pin: hashPin(pin), createdAt: new Date().toISOString(), tier };
       const uid = phoneToId(phone);
       await setDoc(doc(db, 'users', uid), p);
       localStorage.setItem(PROFILE_KEY, JSON.stringify({ ...p, uid }));

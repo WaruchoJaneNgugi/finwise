@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+import type { SubscriptionTier } from '../types';
+
 interface AuthGateProps {
   hasProfile: boolean;
-  onCreateProfile: (name: string, phone: string, pin: string) => void;
+  onCreateProfile: (name: string, phone: string, pin: string, tier: SubscriptionTier) => void;
   onUnlock: (phone: string, pin: string) => Promise<boolean>;
   loading?: boolean;
   error?: string | null;
+  prefilledPhone?: string;
+  tier?: SubscriptionTier;
 }
 
 const PIN_LENGTH = 4;
@@ -54,12 +58,12 @@ const PinInput: React.FC<{
   );
 };
 
-export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile, onUnlock, loading, error: authError }) => {
+export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile, onUnlock, loading, error: authError, prefilledPhone = '', tier = 'free' }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(hasProfile ? 'login' : 'signup');
 
   // Signup
   const [name, setName]       = useState('');
-  const [phone, setPhone]     = useState('');
+  const [phone, setPhone]     = useState(prefilledPhone);
   const [pin, setPin]         = useState('');
   const [confirm, setConfirm] = useState('');
   const [step, setStep]       = useState<'info' | 'pin' | 'confirm'>('info');
@@ -89,7 +93,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile,
   const handleConfirmComplete = (v: string) => {
     setTimeout(() => {
       if (v !== pin) { setSignupErr('PINs do not match'); setConfirm(''); setPin(''); setStep('pin'); }
-      else onCreateProfile(name.trim(), phone.trim(), v);
+      else onCreateProfile(name.trim(), phone.trim(), v, tier);
     }, 120);
   };
 
@@ -151,6 +155,11 @@ export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile,
         {mode === 'signup' && step === 'info' && (
           <>
             <div style={S.title}>Create Account</div>
+            {tier !== 'free' && (
+              <div style={{ fontSize: 12, color: 'var(--gold)', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 6, padding: '5px 10px', display: 'inline-block', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                {tier} plan
+              </div>
+            )}
             <p style={S.sub}>All data stays on this device</p>
             <div style={S.fields}>
               <div style={S.field}>

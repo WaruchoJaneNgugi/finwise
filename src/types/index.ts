@@ -52,7 +52,7 @@ export interface MonthlyBreakdown {
 export type AppView =
     | 'dashboard' | 'expenses' | 'insights' | 'advisor'
     | 'investments' | 'goals' | 'bills' | 'networth' | 'chat'
-    | 'emergency' | 'alerts';
+    | 'emergency' | 'alerts' | 'upgrade';
 
 // ─── Investment types ──────────────────────────────────────
 
@@ -178,11 +178,24 @@ export interface LiabilityCategoryMeta {
 
 // ─── Auth ─────────────────────────────────────────────────
 
+export type SubscriptionTier = 'free' | 'silver' | 'gold' | 'platinum';
+
 export interface UserProfile {
   name: string;
   phone: string;
   pin: string;
   createdAt: string;
+  tier: SubscriptionTier;
+}
+
+export interface SubscriptionPlan {
+  tier: SubscriptionTier;
+  name: string;
+  price: number; // KES/month, 0 = free
+  color: string;
+  icon: string;
+  features: string[];
+  lockedViews: AppView[];
 }
 
 // ─── Chat ─────────────────────────────────────────────────

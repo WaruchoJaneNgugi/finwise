@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { AppView } from '../types';
+import type { SubscriptionTier } from '../types';
 import {type Theme, ThemeContext, useTheme} from "../hooks/NavItems.ts";
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,6 +54,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'insights',    label: 'Insights',   icon: '◑',  group: 'intel' },
   { id: 'chat',        label: 'AI Chat',    icon: '✦',  group: 'intel' },
   { id: 'alerts',      label: 'Alerts',     icon: '◬',  group: 'intel' },
+  { id: 'upgrade',     label: 'Upgrade',    icon: '⭐', group: 'intel' },
 ];
 
 // Bottom bar primary tabs (mobile)
@@ -82,6 +84,7 @@ interface HeaderProps {
   onExportExpenses?:   () => void;
   onExportInvestments?:() => void;
   onExportNetWorth?:   () => void;
+  userTier?:           SubscriptionTier;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -98,6 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 onExportExpenses,
                                                 onExportInvestments,
                                                 onExportNetWorth,
+                                                userTier = 'free',
                                               }) => {
   const { theme, toggleTheme } = useTheme();
   const scoreColor = SCORE_COLOR[scoreLevel] ?? 'var(--text-3)';
@@ -111,10 +115,10 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Memoized nav groups
   const { mainItems, planItems, intelItems } = useMemo(() => ({
-    mainItems:  NAV_ITEMS.filter(n => n.group === 'main'),
-    planItems:  NAV_ITEMS.filter(n => n.group === 'plan'),
-    intelItems: NAV_ITEMS.filter(n => n.group === 'intel'),
-  }), []);
+    mainItems:  NAV_ITEMS.filter(n => n.group === 'main' && n.id !== 'upgrade'),
+    planItems:  NAV_ITEMS.filter(n => n.group === 'plan' && n.id !== 'upgrade'),
+    intelItems: NAV_ITEMS.filter(n => n.group === 'intel' && (n.id !== 'upgrade' || userTier === 'free')),
+  }), [userTier]);
 
   // Scroll effect
   useEffect(() => {
@@ -253,6 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="fw-sec-lbl fw-reveal">{group.title}</div>
                   {group.items.map((item: NavItem) => {
                     const isActive = activeView === item.id;
+                    const isUpgrade = item.id === 'upgrade';
                     return (
                         <button
                             key={item.id}
@@ -260,12 +265,22 @@ export const Header: React.FC<HeaderProps> = ({
                             onClick={() => go(item.id)}
                             title={item.label}
                             aria-current={isActive ? 'page' : undefined}
+                            style={isUpgrade ? {
+                              margin: '8px 0 0',
+                              background: isActive ? 'linear-gradient(135deg, var(--gold-l), var(--gold))' : 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.08))',
+                              border: '1px solid var(--border-acc)',
+                              borderRadius: 10,
+                              color: 'var(--gold)',
+                            } : undefined}
                         >
-                          {isActive && <span className="fw-navbtn-pip" aria-hidden="true" />}
+                          {isActive && !isUpgrade && <span className="fw-navbtn-pip" aria-hidden="true" />}
                           <span className="fw-navbtn-icon" aria-hidden="true">{item.icon}</span>
-                          <span className="fw-reveal fw-navbtn-label">{item.label}</span>
+                          <span className="fw-reveal fw-navbtn-label" style={isUpgrade ? { fontWeight: 700 } : undefined}>{item.label}</span>
                           {item.id === 'chat' && (
                               <span className="fw-reveal fw-ai-chip" aria-label="AI feature">AI</span>
+                          )}
+                          {isUpgrade && (
+                              <span className="fw-reveal" style={{ fontSize: 10, fontWeight: 800, color: 'var(--gold)', background: 'var(--gold-dim)', borderRadius: 4, padding: '2px 6px', marginLeft: 'auto' }}>PRO</span>
                           )}
                         </button>
                     );
