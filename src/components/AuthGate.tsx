@@ -70,19 +70,19 @@ export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile,
   const [loginPin, setLoginPin]     = useState('');
   const [loginStep, setLoginStep]   = useState<'phone' | 'pin'>('phone');
   const [loginErr, setLoginErr]     = useState('');
-  const [attempts, setAttempts]     = useState(0);
+  // const [attempts, setAttempts]     = useState(0);
 
   const handleLoginPinComplete = (v: string) => {
     setTimeout(async () => {
       const ok = await onUnlock(loginPhone, v);
       if (!ok) {
-        setAttempts(a => a + 1);
+        // setAttempts(a => a + 1);
         setLoginPin('');
       }
     }, 120);
   };
 
-  const handleSignupPinComplete = (v: string) => {
+  const handleSignupPinComplete = () => {
     setTimeout(() => setStep('confirm'), 200);
   };
 
