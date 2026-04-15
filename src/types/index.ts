@@ -15,9 +15,16 @@ export interface Expense {
   isRecurring: boolean;
 }
 
+export interface IncomeStream {
+  id: string;
+  label: string;
+  amount: number;
+}
+
 export interface FinancialProfile {
   monthlyIncome: number;
   currency: string;
+  incomeStreams?: IncomeStream[];
 }
 
 export interface CategoryMeta {
@@ -52,7 +59,7 @@ export interface MonthlyBreakdown {
 export type AppView =
     | 'dashboard' | 'expenses' | 'insights' | 'advisor'
     | 'investments' | 'goals' | 'bills' | 'networth' | 'chat'
-    | 'emergency' | 'alerts' | 'upgrade';
+    | 'emergency' | 'alerts' | 'upgrade' | 'profile';
 
 // ─── Investment types ──────────────────────────────────────
 
@@ -186,6 +193,8 @@ export interface UserProfile {
   pin: string;
   createdAt: string;
   tier: SubscriptionTier;
+  blacklisted?: boolean;
+  subscriptionStart?: string; // ISO date when paid tier began
 }
 
 export interface SubscriptionPlan {
@@ -225,6 +234,18 @@ export interface EmergencyFundData {
   targetMonths: number;
   lastUpdated: string;
   contributions: { id: string; amount: number; date: string; note: string }[];
+}
+
+// ─── Admin ────────────────────────────────────────────────
+
+export type AdminRole = 'super_admin' | 'support' | 'finance';
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  passwordHash: string;
+  role: AdminRole;
+  createdAt: string;
 }
 
 // ─── Alerts & SOS ─────────────────────────────────────────

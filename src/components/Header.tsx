@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import type { AppView } from '../types';
 import type { SubscriptionTier } from '../types';
 import {type Theme, ThemeContext, useTheme} from "../hooks/NavItems.ts";
+import { PLAN_LOCKED_VIEWS } from './LandingPage';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [theme, setTheme] = useState<Theme>(() => {
@@ -54,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'insights',    label: 'Insights',   icon: '◑',  group: 'intel' },
   { id: 'chat',        label: 'AI Chat',    icon: '✦',  group: 'intel' },
   { id: 'alerts',      label: 'Alerts',     icon: '◬',  group: 'intel' },
+  { id: 'profile',     label: 'Profile',    icon: '◯',  group: 'intel' },
   { id: 'upgrade',     label: 'Upgrade',    icon: '⭐', group: 'intel' },
 ];
 
@@ -113,12 +115,15 @@ export const Header: React.FC<HeaderProps> = ({
   const [userMenu, setUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Memoized nav groups
+  // Memoized nav groups — hide locked views for current tier
+  const lockedViews = PLAN_LOCKED_VIEWS[userTier] ?? [];
+  const isVisible = (id: AppView) => !lockedViews.includes(id);
+
   const { mainItems, planItems, intelItems } = useMemo(() => ({
-    mainItems:  NAV_ITEMS.filter(n => n.group === 'main' && n.id !== 'upgrade'),
-    planItems:  NAV_ITEMS.filter(n => n.group === 'plan' && n.id !== 'upgrade'),
-    intelItems: NAV_ITEMS.filter(n => n.group === 'intel' && (n.id !== 'upgrade' || userTier === 'free')),
-  }), [userTier]);
+    mainItems:  NAV_ITEMS.filter(n => n.group === 'main' && n.id !== 'upgrade' && isVisible(n.id)),
+    planItems:  NAV_ITEMS.filter(n => n.group === 'plan' && n.id !== 'upgrade' && isVisible(n.id)),
+    intelItems: NAV_ITEMS.filter(n => n.group === 'intel' && (n.id !== 'upgrade' || userTier !== 'platinum') && isVisible(n.id)),
+  }), [userTier, lockedViews]);
 
   // Scroll effect
   useEffect(() => {
@@ -398,7 +403,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* ══════════ MOBILE BOTTOM NAV ════════════════════════ */}
       <nav className="fw-bottom-nav">
         <div className="fw-bottom-nav-inner">
-          {PRIMARY_MOBILE.map(id => {
+          {PRIMARY_MOBILE.filter(id => isVisible(id)).map(id => {
             const item = NAV_ITEMS.find(n => n.id === id)!;
             return (
               <button

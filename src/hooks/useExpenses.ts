@@ -41,8 +41,8 @@ export const useExpenses = (billsTotal = 0, goalsTotal = 0) => {
     deleteFromCollection('expenses', id);
   }, [expenses]);
 
-  const updateProfile = useCallback((income: number, currency: string) => {
-    saveProfile({ monthlyIncome: income, currency });
+  const updateProfile = useCallback((income: number, currency: string, streams?: import('../types').IncomeStream[]) => {
+    saveProfile({ monthlyIncome: income, currency, incomeStreams: streams });
   }, []);
 
   const monthlyExpenses = useMemo(() => filterByMonth(expenses, selectedMonth), [expenses, selectedMonth]);

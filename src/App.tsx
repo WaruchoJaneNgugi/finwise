@@ -30,6 +30,8 @@ import { AlertsPanel }      from './components/AlertsPanel';
 import { LandingPage, PLAN_LOCKED_VIEWS } from './components/LandingPage';
 import { PaymentGate }      from './components/PaymentGate';
 import { UpgradePage }      from './components/UpgradePage';
+import { ProfilePage }      from './components/ProfilePage';
+import { AdminPanel }       from './components/admin/AdminPanel';
 
 import {
   exportExpensesToCSV,
@@ -47,10 +49,16 @@ const TIER_META: Record<SubscriptionTier, { name: string; price: number; color: 
 type AppStage = 'landing' | 'payment' | 'auth' | 'app';
 
 const App: React.FC = () => {
+  // ── Hidden admin route: /?__admin ───────────────────────
+  if (window.location.search.includes('__admin')) {
+    return <ThemeProvider><AdminPanel /></ThemeProvider>;
+  }
+
   const [activeView, setActiveView] = useState<AppView>('advisor');
   const [stage, setStage] = useState<AppStage>('landing');
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier>('free');
   const [prefilledPhone, setPrefilledPhone] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
 
   const auth = useAuth();
 
@@ -72,7 +80,8 @@ const App: React.FC = () => {
   const emergencyFund = useEmergencyFund(breakdown.totalExpenses || profile.monthlyIncome * 0.6);
   const alerts = useAlerts();
 
-  const handleUpdateIncome = (income: number) => updateProfile(income, profile.currency);
+  const handleUpdateIncome = (income: number, streams?: import('./types').IncomeStream[]) =>
+    updateProfile(income, profile.currency, streams);
 
   // ── Stage: Landing ──────────────────────────────────────
   if (!auth.isUnlocked && stage === 'landing') {
@@ -81,9 +90,11 @@ const App: React.FC = () => {
         <LandingPage
           onSelectTier={(tier) => {
             setSelectedTier(tier);
+            setAuthMode('signup');
             if (tier === 'free') setStage('auth');
             else setStage('payment');
           }}
+          onLogin={() => { setAuthMode('login'); setStage('auth'); }}
         />
       </ThemeProvider>
     );
@@ -94,12 +105,15 @@ const App: React.FC = () => {
     const meta = TIER_META[selectedTier];
     return (
       <ThemeProvider>
-        <PaymentGate
-          tierName={meta.name}
-          tierPrice={meta.price}
-          tierColor={meta.color}
-          onPaymentComplete={(phone) => { setPrefilledPhone(phone); setStage('auth'); }}
-          onBack={() => setStage('landing')}
+        <AuthGate
+          hasProfile={!!auth.profile}
+          onCreateProfile={auth.createProfile}
+          onUnlock={auth.unlock}
+          loading={auth.loading}
+          error={auth.error}
+          prefilledPhone={prefilledPhone}
+          tier={selectedTier}
+          defaultMode="signup"
         />
       </ThemeProvider>
     );
@@ -117,6 +131,7 @@ const App: React.FC = () => {
           error={auth.error}
           prefilledPhone={prefilledPhone}
           tier={selectedTier}
+          defaultMode={authMode}
         />
       </ThemeProvider>
     );
@@ -153,7 +168,13 @@ const App: React.FC = () => {
             tierName={TIER_META[selectedTier].name}
             tierPrice={TIER_META[selectedTier].price}
             tierColor={TIER_META[selectedTier].color}
-            onPaymentComplete={() => { setStage('app'); setActiveView('dashboard'); }}
+            userId={auth.profile?.phone?.replace(/\s+/g, '') ?? ''}
+            tier={selectedTier}
+            onPaymentComplete={() => {
+              auth.updateTier(selectedTier);
+              setStage('app');
+              setActiveView('dashboard');
+            }}
             onBack={() => setStage('app')}
           />
         </div>
@@ -367,6 +388,15 @@ const App: React.FC = () => {
                 setSelectedTier(tier);
                 setStage('payment');
               }}
+            />
+          )}
+
+          {/* ── Profile ─────────────────────────────────────────── */}
+          {activeView === 'profile' && auth.profile && (
+            <ProfilePage
+              profile={auth.profile}
+              uid={auth.profile.phone.replace(/\s+/g, '')}
+              onNavigate={setActiveView}
             />
           )}
 

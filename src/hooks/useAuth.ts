@@ -74,6 +74,14 @@ export const useAuth = () => {
     }
   }, []);
 
+  const updateTier = useCallback((tier: SubscriptionTier) => {
+    const local = loadLocalProfile();
+    if (!local) return;
+    const updated = { ...local, tier, subscriptionStart: new Date().toISOString() };
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(updated));
+    setProfile(updated);
+  }, []);
+
   const lock = useCallback(() => {
     localStorage.removeItem(SESSION_KEY);
     setIsUnlocked(false);
@@ -91,5 +99,5 @@ export const useAuth = () => {
     setIsUnlocked(false);
   }, []);
 
-  return { profile, isUnlocked, loading, error, createProfile, unlock, lock, deleteAccount };
+  return { profile, isUnlocked, loading, error, createProfile, unlock, lock, deleteAccount, updateTier };
 };

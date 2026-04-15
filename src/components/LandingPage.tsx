@@ -71,7 +71,6 @@ const STATS = [
   { value: '12,000+', label: 'Kenyans saving smarter' },
   { value: 'KES 2.4B', label: 'Tracked across users' },
   { value: '4.9★', label: 'Average user rating' },
-  { value: '100%', label: 'Data stays on your device' },
 ];
 
 const FEATURES = [
@@ -80,14 +79,14 @@ const FEATURES = [
   { icon: '📈', title: 'Investment Manager', desc: 'Track SACCOs, MMFs, stocks, bonds and crypto in one clean portfolio view.' },
   { icon: '🤖', title: 'AI Financial Advisor', desc: 'Get personalised advice based on your actual income, spending and goals.' },
   { icon: '🔔', title: 'Bills & Alerts', desc: 'Never miss a payment. Get overdue warnings and SOS emergency alerts.' },
-  { icon: '🔒', title: 'Private by Design', desc: 'All your financial data lives on your device. We never see your numbers.' },
 ];
 
 interface LandingPageProps {
   onSelectTier: (tier: SubscriptionTier) => void;
+  onLogin: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onLogin }) => {
   const [visible, setVisible] = useState(false);
   useEffect(() => { const t = setTimeout(() => setVisible(true), 50); return () => clearTimeout(t); }, []);
 
@@ -122,9 +121,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
               <div style={S.logoTag}>YOUR MONEY, MASTERED</div>
             </div>
           </div>
-          <button style={S.navCta} className="cta-btn" onClick={() => onSelectTier('free')}>
-            Get Started Free →
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button style={S.navLogin} className="cta-btn" onClick={onLogin}>
+              Log In
+            </button>
+            <button style={S.navCta} className="cta-btn" onClick={() => onSelectTier('free')}>
+              Get Started Free →
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -143,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
           <button style={S.primaryBtn} className="cta-btn" onClick={() => onSelectTier('free')}>
             Start for Free
           </button>
-          <button style={S.secondaryBtn} className="cta-btn" onClick={() => onSelectTier('gold')}>
+          <button style={S.secondaryBtn} className="cta-btn" onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}>
             View Plans ↓
           </button>
         </div>
@@ -175,7 +179,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
       </section>
 
       {/* ── PLANS ───────────────────────────────────────────── */}
-      <section style={S.section} className="land-plans">
+      <section id="plans" style={S.section} className="land-plans">
         <div style={S.sectionLabel}>PRICING</div>
         <h2 style={S.sectionTitle}>Simple, transparent plans</h2>
         <p style={S.sectionSub}>Start free. Upgrade when you're ready. Cancel anytime.</p>
@@ -259,6 +263,7 @@ const S: Record<string, React.CSSProperties> = {
   nav:          { width: '100%', position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(10,22,40,0.07)' },
   navInner:     { maxWidth: 1100, margin: '0 auto', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   navCta:       { padding: '9px 20px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' },
+  navLogin:     { padding: '9px 20px', background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--border-s)', borderRadius: 10, fontWeight: 600, fontSize: 14, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' },
 
   // Logo
   logoRow:      { display: 'flex', alignItems: 'center', gap: 10 },

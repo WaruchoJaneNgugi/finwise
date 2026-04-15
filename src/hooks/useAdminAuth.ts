@@ -1,0 +1,63 @@
+import { useState, useCallback } from 'react';
+import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import type { AdminUser, AdminRole } from '../types';
+
+const ADMIN_SESSION = 'finwise_admin_session';
+
+const hashPassword = (pw: string): string => {
+  let h = 5381;
+  for (let i = 0; i < pw.length; i++) h = (h * 33) ^ pw.charCodeAt(i);
+  return (h >>> 0).toString(36);
+};
+
+export const useAdminAuth = () => {
+  const [admin, setAdmin] = useState<AdminUser | null>(() => {
+    try { return JSON.parse(sessionStorage.getItem(ADMIN_SESSION) || 'null'); }
+    catch { return null; }
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const snap = await getDocs(collection(db, 'admins'));
+      const match = snap.docs.find(d => {
+        const data = d.data() as AdminUser;
+        return data.email === email && data.passwordHash === hashPassword(password);
+      });
+      if (!match) { setError('Invalid credentials.'); return false; }
+      const adminData = { id: match.id, ...match.data() } as AdminUser;
+      sessionStorage.setItem(ADMIN_SESSION, JSON.stringify(adminData));
+      setAdmin(adminData);
+      return true;
+    } catch {
+      setError('Login failed. Check your connection.');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    sessionStorage.removeItem(ADMIN_SESSION);
+    setAdmin(null);
+  }, []);
+
+  const createAdmin = useCallback(async (email: string, password: string, role: AdminRole) => {
+    const id = email.replace(/[^a-z0-9]/gi, '_');
+    const newAdmin: Omit<AdminUser, 'id'> = {
+      email, passwordHash: hashPassword(password), role,
+      createdAt: new Date().toISOString(),
+    };
+    await setDoc(doc(db, 'admins', id), newAdmin);
+  }, []);
+
+  const deleteAdmin = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'admins', id));
+  }, []);
+
+  return { admin, loading, error, login, logout, createAdmin, deleteAdmin };
+};

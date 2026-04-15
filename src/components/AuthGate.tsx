@@ -10,6 +10,7 @@ interface AuthGateProps {
   error?: string | null;
   prefilledPhone?: string;
   tier?: SubscriptionTier;
+  defaultMode?: 'login' | 'signup';
 }
 
 const PIN_LENGTH = 4;
@@ -33,7 +34,6 @@ const PinInput: React.FC<{
 
   return (
     <div style={{ position: 'relative', marginBottom: 4 }} onClick={() => inputRef.current?.focus()}>
-      {/* Hidden real input */}
       <input
         ref={inputRef}
         type="password"
@@ -43,23 +43,30 @@ const PinInput: React.FC<{
         style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', top: 0, left: 0, cursor: 'pointer' }}
         autoFocus={autoFocus}
       />
-      {/* Visual dots */}
-      <div style={{ display: 'flex', gap: 14, justifyContent: 'center', padding: '12px 0' }}>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', padding: '12px 0' }}>
         {Array.from({ length: PIN_LENGTH }).map((_, i) => (
           <div key={i} style={{
-            width: 18, height: 18, borderRadius: '4px',
-            background: i < value.length ? (error ? 'var(--red)' : 'var(--gold)') : 'var(--border-s)',
-            transition: 'background 0.15s',
-            boxShadow: i < value.length ? `0 0 8px ${error ? 'var(--red)' : 'var(--gold)'}80` : 'none',
-          }} />
+            width: 58, height: 58, borderRadius: 16,
+            background: error ? 'rgba(220,38,38,0.08)' : i < value.length ? 'rgba(167,139,250,0.18)' : 'rgba(167,139,250,0.10)',
+            border: `2px solid ${error ? 'rgba(220,38,38,0.4)' : i < value.length ? 'rgba(167,139,250,0.7)' : 'rgba(167,139,250,0.35)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.15s',
+          }}>
+            {i < value.length && (
+              <div style={{
+                width: 10, height: 10, borderRadius: '50%',
+                background: error ? 'var(--red)' : '#A78BFA',
+              }} />
+            )}
+          </div>
         ))}
       </div>
     </div>
   );
 };
 
-export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile, onUnlock, loading, error: authError, prefilledPhone = '', tier = 'free' }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(hasProfile ? 'login' : 'signup');
+export const AuthGate: React.FC<AuthGateProps> = ({ hasProfile, onCreateProfile, onUnlock, loading, error: authError, prefilledPhone = '', tier = 'free', defaultMode }) => {
+  const [mode, setMode] = useState<'login' | 'signup'>(defaultMode ?? (hasProfile ? 'login' : 'signup'));
 
   // Signup
   const [name, setName]       = useState('');

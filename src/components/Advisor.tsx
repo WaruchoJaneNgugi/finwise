@@ -1,23 +1,54 @@
 import React, { useState } from 'react';
-import type { InvestmentAdvice, FinancialProfile, MonthlyBreakdown } from '../types';
+import type { InvestmentAdvice, FinancialProfile, MonthlyBreakdown, IncomeStream } from '../types';
 import { formatCurrency } from '../utils/expenses';
 import { getInvestmentAdvice } from '../utils/calculations';
 
 interface AdvisorProps {
   profile: FinancialProfile;
-  onUpdateIncome: (income: number) => void;
+  onUpdateIncome: (income: number, streams?: IncomeStream[]) => void;
   billsTotal?: number;
   goalsTotal?: number;
   breakdown?: MonthlyBreakdown;
 }
 
+const newStream = (): IncomeStream => ({ id: Date.now().toString(), label: '', amount: 0 });
+
 export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome, billsTotal = 0, goalsTotal = 0, breakdown }) => {
-  const [customIncome, setCustomIncome] = useState(String(profile.monthlyIncome || ''));
-  const income = profile.monthlyIncome;
+  const initStreams = (): IncomeStream[] =>
+    profile.incomeStreams?.length
+      ? profile.incomeStreams
+      : profile.monthlyIncome > 0
+        ? [{ id: '1', label: 'Primary Income', amount: profile.monthlyIncome }]
+        : [newStream()];
+
+  const [streams, setStreams] = useState<IncomeStream[]>(initStreams);
+  const [useStreams, setUseStreams] = useState(!!(profile.incomeStreams?.length));
+  const [singleIncome, setSingleIncome] = useState(String(profile.monthlyIncome || ''));
+
+  const totalFromStreams = streams.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const income = useStreams ? totalFromStreams : profile.monthlyIncome;
   const advice: InvestmentAdvice = getInvestmentAdvice(income);
 
   const actualSpend = breakdown?.totalExpenses ?? 0;
   const actualSavings = income > 0 ? Math.max(0, income - actualSpend) : 0;
+
+  const applyStreams = () => {
+    const valid = streams.filter(s => s.label.trim() && Number(s.amount) > 0);
+    if (!valid.length) return;
+    const total = valid.reduce((s, x) => s + Number(x.amount), 0);
+    onUpdateIncome(total, valid);
+  };
+
+  const applySingle = () => {
+    const val = parseFloat(singleIncome.replace(/,/g, ''));
+    if (!isNaN(val) && val > 0) onUpdateIncome(val, undefined);
+  };
+
+  const updateStream = (id: string, field: 'label' | 'amount', value: string) =>
+    setStreams(prev => prev.map(s => s.id === id ? { ...s, [field]: field === 'amount' ? value : value } : s));
+
+  const removeStream = (id: string) =>
+    setStreams(prev => prev.length > 1 ? prev.filter(s => s.id !== id) : prev);
 
   const allocationItems = [
     { label: 'Living Expenses', amount: advice.living, pct: income > 0 ? Math.round((advice.living / income) * 100) : 0, color: 'var(--blue)', icon: '🏠', desc: 'Housing, food, transport, utilities, medical' },
@@ -32,31 +63,83 @@ export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome, bills
     : income <= 100000 ? 'Stable (KSh 50K – 100K)'
     : 'High Earner (> KSh 100K)';
 
-  const handleApply = () => {
-    const val = parseFloat(customIncome.replace(/,/g, ''));
-    if (!isNaN(val) && val > 0) onUpdateIncome(val);
-  };
-
   return (
     <div style={S.container} className="animate-in">
 
       {/* Income card */}
       <div style={S.incomeCard}>
+        {/* Toggle */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+          <button
+            style={{ ...S.toggleBtn, ...(useStreams ? {} : S.toggleActive) }}
+            onClick={() => setUseStreams(false)}
+          >Single Income</button>
+          <button
+            style={{ ...S.toggleBtn, ...(useStreams ? S.toggleActive : {}) }}
+            onClick={() => setUseStreams(true)}
+          >Multiple Streams</button>
+        </div>
+
         <div className="income-card-inner">
           <div style={S.incomeLeft}>
-            <div style={S.cardTitle}>Your Monthly Income</div>
-            <p style={S.incomeDesc}>
-              Enter your take-home income to get personalised allocation advice. Works for incomes from KSh 10,000 and above.
-            </p>
-            <div className="income-row">
-              <div style={S.inputWrap}>
-                <span style={S.currencyTag}>KSh</span>
-                <input style={S.incomeInput} type="number" min="10000" placeholder="e.g. 45000"
-                  value={customIncome} onChange={(e) => setCustomIncome(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleApply()} />
-              </div>
-              <button style={S.applyBtn} onClick={handleApply}>Apply</button>
+            <div style={S.cardTitle}>
+              {useStreams ? 'Your Income Streams' : 'Your Monthly Income'}
             </div>
+
+            {!useStreams ? (
+              <>
+                <p style={S.incomeDesc}>
+                  Enter your take-home income to get personalised allocation advice.
+                </p>
+                <div className="income-row">
+                  <div style={S.inputWrap}>
+                    <span style={S.currencyTag}>KSh</span>
+                    <input style={S.incomeInput} type="number" min="0" placeholder="e.g. 45000"
+                      value={singleIncome} onChange={e => setSingleIncome(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && applySingle()} />
+                  </div>
+                  <button style={S.applyBtn} onClick={applySingle}>Apply</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={S.incomeDesc}>
+                  Add each income source separately — salary, freelance, business, rent, dividends, etc.
+                  The total is used for your financial plan.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                  {streams.map((s, i) => (
+                    <div key={s.id} style={S.streamRow}>
+                      <input
+                        style={{ ...S.streamInput, flex: 2 }}
+                        placeholder={`Stream ${i + 1} (e.g. Salary, Freelance)`}
+                        value={s.label}
+                        onChange={e => updateStream(s.id, 'label', e.target.value)}
+                      />
+                      <div style={{ ...S.inputWrap, flex: 1 }}>
+                        <span style={S.currencyTag}>KSh</span>
+                        <input
+                          style={S.incomeInput}
+                          type="number" min="0" placeholder="Amount"
+                          value={s.amount || ''}
+                          onChange={e => updateStream(s.id, 'amount', e.target.value)}
+                        />
+                      </div>
+                      <button style={S.removeStreamBtn} onClick={() => removeStream(s.id)} title="Remove">✕</button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button style={S.addStreamBtn} onClick={() => setStreams(p => [...p, newStream()])}>+ Add Stream</button>
+                  <button style={S.applyBtn} onClick={applyStreams}>Apply</button>
+                  {totalFromStreams > 0 && (
+                    <span style={{ fontSize: 13, color: 'var(--text-3)' }}>
+                      Total: <strong style={{ color: 'var(--gold)' }}>{formatCurrency(totalFromStreams, 'KES')}</strong>
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {income > 0 && (
@@ -64,6 +147,16 @@ export const Advisor: React.FC<AdvisorProps> = ({ profile, onUpdateIncome, bills
               <div style={S.tierLabel}>Income Tier</div>
               <div style={S.tierName}>{incomeLabel}</div>
               <div style={S.tierIncome}>{formatCurrency(income, 'KES')} / month</div>
+              {useStreams && streams.filter(s => s.amount > 0).length > 1 && (
+                <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {streams.filter(s => Number(s.amount) > 0 && s.label).map(s => (
+                    <div key={s.id} style={{ fontSize: 11, color: 'var(--text-3)', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <span>{s.label}</span>
+                      <span style={{ color: 'var(--gold)' }}>{Math.round((Number(s.amount) / totalFromStreams) * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -202,7 +295,13 @@ const S: Record<string, React.CSSProperties> = {
   inputWrap: { display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', border: '1px solid var(--border-acc)', borderRadius: 9, overflow: 'hidden' },
   currencyTag: { padding: '0 12px', color: 'var(--gold)', fontSize: 13, fontWeight: 600, background: 'var(--gold-dim)', borderRight: '1px solid var(--border-acc)', height: '100%', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' },
   incomeInput: { background: 'transparent', border: 'none', padding: '12px 14px', color: 'var(--text-1)', fontSize: 16, fontFamily: 'Karla, sans-serif', width: '100%', minWidth: 0 },
-  applyBtn: { padding: '12px 22px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 },
+  applyBtn: { padding: '12px 22px', background: 'linear-gradient(135deg, var(--gold), var(--gold-l))', color: '#0A1628', borderRadius: 9, fontWeight: 700, fontSize: 14, fontFamily: 'Karla, sans-serif', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer' },
+  toggleBtn: { padding: '7px 16px', borderRadius: 8, border: '1px solid var(--border-acc)', background: 'transparent', color: 'var(--text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'Karla, sans-serif' },
+  toggleActive: { background: 'var(--gold-dim)', color: 'var(--gold)', borderColor: 'var(--gold)' },
+  streamRow: { display: 'flex', gap: 8, alignItems: 'center' },
+  streamInput: { background: 'var(--bg-surface)', border: '1px solid var(--border-acc)', borderRadius: 9, padding: '12px 14px', color: 'var(--text-1)', fontSize: 14, fontFamily: 'Karla, sans-serif', minWidth: 0 },
+  removeStreamBtn: { background: 'transparent', border: '1px solid var(--border)', borderRadius: 7, color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', padding: '8px 10px', flexShrink: 0 },
+  addStreamBtn: { padding: '10px 16px', background: 'var(--bg-surface)', border: '1px dashed var(--border-acc)', borderRadius: 9, color: 'var(--gold)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'Karla, sans-serif' },
   tierLabel: { fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' },
   tierName: { fontFamily: 'Cormorant Garamond, serif', fontSize: 18, fontWeight: 600, color: 'var(--gold)', marginTop: 6 },
   tierIncome: { fontSize: 13, color: 'var(--text-2)', marginTop: 4 },
